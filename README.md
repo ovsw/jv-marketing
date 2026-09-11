@@ -153,13 +153,12 @@ The GitHub `release-gate.yml` workflow checks `main` and pull requests. It does 
 Deploy Studio from `studio/` with the reviewed dataset and the live preview origin:
 
 ```bash
-SANITY_STUDIO_PREVIEW_URL=https://phxhomeloan.com pnpm exec sanity deploy
+SANITY_STUDIO_DATASET=production SANITY_STUDIO_PREVIEW_URL=https://phxhomeloan.com pnpm exec sanity deploy
 ```
 
 Keep local preview values in local env files. The live site currently uses Sanity project
-`hv0545v9`, dataset `development`; this dataset name does not mean its published content is isolated from production.
-
-See [launch status](docs/launch-status.md) for the Vercel team, DNS, release evidence, and rollback records.
+`hv0545v9`, dataset `production`. Vercel Preview and local development use `development`.
+The datasets are separate; edits to development do not change the live site.
 
 #### 5. Deploy Studio to Vercel (optional)
 
