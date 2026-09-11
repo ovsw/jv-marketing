@@ -147,16 +147,19 @@ sanity deploy
 
 After the first deploy, set `SANITY_STUDIO_APP_ID` from the CLI output so later deploys skip the hostname prompt.
 
-#### 4. GitHub Actions (Studio)
+#### 4. Production Studio releases
 
-The repo includes [`.github/workflows/deploy-studio.yml`](.github/workflows/deploy-studio.yml): it deploys Studio when `studio/**` changes on **`master`** or **`develop`**.
+The GitHub `release-gate.yml` workflow checks `main` and pull requests. It does not deploy Studio.
+Deploy Studio from `studio/` with the reviewed dataset and the live preview origin:
 
-Configure GitHub **Environments** (`Production` for `master`, `development` for `develop`):
+```bash
+SANITY_STUDIO_PREVIEW_URL=https://phxhomeloan.com pnpm exec sanity deploy
+```
 
-- **Variables**: `SANITY_STUDIO_PREVIEW_URL`, `SANITY_STUDIO_PROJECT_ID`, `SANITY_STUDIO_DATASET`, `SANITY_STUDIO_HOSTNAME`, `SANITY_STUDIO_API_VERSION`, `SANITY_STUDIO_APP_ID`
-- **Secret**: `SANITY_AUTH_TOKEN` (Sanity Manage → API → Tokens, deploy-capable token)
+Keep local preview values in local env files. The live site currently uses Sanity project
+`hv0545v9`, dataset `development`; this dataset name does not mean its published content is isolated from production.
 
-See the workflow file for the exact names checked during deploy.
+See [launch status](docs/launch-status.md) for the Vercel team, DNS, release evidence, and rollback records.
 
 #### 5. Deploy Studio to Vercel (optional)
 
@@ -167,6 +170,12 @@ Create a separate Vercel project with **Root Directory** `studio` and the same `
 Now that you've deployed your Next.js application and Sanity Studio, you can optionally invite a collaborator to your Studio. Open up [Manage](https://www.sanity.io/manage), select your project and click "Invite project members"
 
 They will be able to access the deployed Studio, where you can collaborate together on creating content.
+
+### Contact form and optional newsletter
+
+The contact form uses Formspark through `frontend/app/actions/submit-contact-form.ts`.
+Its recipient and delivery settings are managed in Formspark. The old
+`NEXT_RESEND_TO_EMAIL` and `NEXT_RESEND_FROM_EMAIL` variables do not control contact delivery.
 
 ### Configuring Resend (optional)
 
