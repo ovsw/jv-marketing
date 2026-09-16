@@ -269,7 +269,7 @@ The completed action or stage transition produced through a Conversion Point. No
 The team's goal of helping a veteran buy and keep a home with a monthly payment based on the veteran's budget and at least three months of mortgage reserves for unexpected costs. It takes priority over maximizing the amount the veteran can borrow. Confirmed in the strategy meeting, 2026-09-08.
 
 **Mortgage Product**:
-A named mortgage offering presented to Prospective Borrowers through VALoansForVets.com. VA purchase, IRRRL, and VA cash-out are primary offerings; VA Jumbo and VA home improvement are secondary, and a veteran stays with VALoansForVets.com when another Mortgage Product is needed. Confirmed by the project owner, 2026-09-09.
+A named mortgage offering or financing path presented to Prospective Borrowers through a Web Property. PHXHomeLoan.com presents VA, FHA, Conventional, Jumbo, USDA, Construction-to-Permanent, ARM, and Refinance. VALoansForVets.com presents VA purchase, IRRRL, and VA cash-out as primary offerings and VA Jumbo and VA home improvement as secondary, and a veteran stays with VALoansForVets.com when another Mortgage Product is needed. Confirmed by the project owner, 2026-09-09.
 _Avoid_: Loan Type, Loan Program, Mortgage Option
 
 **Certificate of Eligibility**:
