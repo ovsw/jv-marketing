@@ -17,7 +17,7 @@ export default defineConfig({
     command: process.env.PLAYWRIGHT_REUSE_BUILD
       ? "pnpm start --port 3200"
       : "pnpm build && pnpm start --port 3200",
-    url: baseURL,
+    url: "http://localhost:3200",
     reuseExistingServer:
       !process.env.CI && !process.env.PLAYWRIGHT_REUSE_BUILD,
     timeout: 180_000,

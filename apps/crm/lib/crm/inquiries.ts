@@ -21,7 +21,8 @@ export async function listTestInquiries() {
   }));
 }
 
-// Any staff member can submit or retry. The email goes to the submitter.
+// Any staff member can submit or retry. The first submission fixes the
+// recipient; a retry must not mutate the saved inquiry or redirect its email.
 export async function submitTestInquiry(id: string) {
   const staff = await requireStaff();
   if (!isTestRecipient(staff.email))
@@ -30,6 +31,8 @@ export async function submitTestInquiry(id: string) {
   await db
     .insert(testInquiries)
     .values({ id, createdBy: staff.userId, recipient: staff.email })
+    // Preserve the original creator and recipient when another staff member
+    // retries the same inquiry ID.
     .onConflictDoNothing();
   const [row] = await db
     .select()

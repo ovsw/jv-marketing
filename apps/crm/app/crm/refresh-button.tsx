@@ -17,16 +17,25 @@ export function RefreshButton({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   useEffect(() => {
-    if (
-      pendingSince === null ||
-      Date.now() - new Date(pendingSince).getTime() >= 15 * 60000
-    )
-      return;
-    const timer = setInterval(
+    if (pendingSince === null) return;
+
+    const remainingPollingTime =
+      15 * 60000 - (Date.now() - new Date(pendingSince).getTime());
+    if (remainingPollingTime <= 0) return;
+
+    const refreshTimer = setInterval(
       () => startTransition(() => router.refresh()),
       4000,
     );
-    return () => clearInterval(timer);
+    const stopTimer = setTimeout(
+      () => clearInterval(refreshTimer),
+      remainingPollingTime,
+    );
+
+    return () => {
+      clearInterval(refreshTimer);
+      clearTimeout(stopTimer);
+    };
   }, [pendingSince, router]);
   return (
     <Button
