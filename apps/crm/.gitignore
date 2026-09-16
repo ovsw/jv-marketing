@@ -5,7 +5,6 @@
 /.pnp
 .pnp.js
 .pnpm-store
-.turbo
 .yarn/install-state.gz
 
 # testing
@@ -42,12 +41,13 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# sanity dataset exports (backups taken before destructive/verification work)
-apps/phx-studio/backups/
 .env*
 !.env.example
 !.env*.example
 !.env.template
 !.env*.template
-apps/crm/.env.local
-apps/crm/backups/
+
+# Starter workspace outputs
+.codex/config.toml
+/.worktree-ports.json
+/.worktree-ports.json.*.tmp

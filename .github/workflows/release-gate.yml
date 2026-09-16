@@ -16,6 +16,9 @@ permissions:
   deployments: read
 
 env:
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+  CRM_STAFF_EMAILS: ci@example.com
+  TEST_EMAIL_ALLOWLIST: ci@example.com
   NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
   NEXT_PUBLIC_STUDIO_URL: ${{ vars.NEXT_PUBLIC_STUDIO_URL }}
   NEXT_PUBLIC_SITE_ENV: production

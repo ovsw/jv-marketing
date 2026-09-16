@@ -13,6 +13,7 @@
     "dev:prototype": "python3 -m http.server 8000 --bind 127.0.0.1 --directory apps/phx-website/PHXHomeLoan-web-prototype",
     "dev:studio": "turbo run dev --filter=studio",
     "dev:phx-studio": "turbo run dev --filter=studio",
+    "dev:crm": "turbo run dev --filter=crm",
     "dev:worktree": "node scripts/dev-worktree.mjs",
     "presentation:url": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/presentation-url.mjs",
     "setup:sanity-cors": "node scripts/setup-sanity-cors.mjs",
@@ -25,6 +26,11 @@
     "test": "turbo run test",
     "test:e2e": "turbo run test:e2e",
     "test:smoke": "turbo run test:smoke",
+    "trigger:login": "pnpm --dir apps/crm trigger:login",
+    "trigger:dev": "pnpm --dir apps/crm trigger:dev",
+    "db:generate:crm": "pnpm --dir apps/crm db:generate",
+    "db:migrate:crm-preview": "pnpm --dir apps/crm db:migrate:preview",
+    "db:backup:crm-preview": "pnpm --dir apps/crm db:backup:preview",
     "export": "pnpm --dir apps/phx-studio exec sanity dataset export production sample-data.tar.gz"
   },
   "devDependencies": {
