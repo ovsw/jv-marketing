@@ -47,6 +47,15 @@ const files = envFiles.map(({ path, legacyPath, optional }) => {
     : currentSource;
   return { path, sourcePath, destinationPath, optional };
 });
+
+for (const { destinationPath } of files) {
+  const destination = lstatSync(destinationPath, { throwIfNoEntry: false });
+  if (destination && !destination.isFile()) {
+    console.error(`Existing destination is not a regular file: ${destinationPath}`);
+    process.exit(1);
+  }
+}
+
 const missingSources = files.filter(({ sourcePath, destinationPath, optional }) =>
   !existsSync(destinationPath) &&
   (!existsSync(sourcePath) ? !optional : !lstatSync(sourcePath).isFile()),
