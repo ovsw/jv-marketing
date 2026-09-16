@@ -8,7 +8,12 @@ import {
 } from "node:fs";
 import { dirname, resolve } from "node:path";
 
-const envFiles = ["apps/phx-website/.env.local", "apps/phx-studio/.env"];
+const envFiles = [
+  { path: "apps/phx-website/.env.local", legacyPath: "frontend/.env.local" },
+  { path: "apps/phx-studio/.env", legacyPath: "studio/.env" },
+  { path: "apps/phx-studio/.env.local", legacyPath: "studio/.env.local", optional: true },
+  { path: "apps/crm/.env.local", optional: true },
+];
 const sourceArgument = process.argv[2] ?? process.env.T3CODE_PROJECT_ROOT;
 
 if (!sourceArgument) {
@@ -32,28 +37,40 @@ if (sourceRoot === destinationRoot) {
   process.exit(1);
 }
 
-const missingSources = envFiles.filter((relativePath) => {
-  const sourcePath = resolve(sourceRoot, relativePath);
-  return !existsSync(sourcePath) || !lstatSync(sourcePath).isFile();
+// Resolve and check all files before copying. Git does not move ignored env
+// files when a checkout receives the monorepo directory changes.
+const files = envFiles.map(({ path, legacyPath, optional }) => {
+  const destinationPath = resolve(destinationRoot, path);
+  const currentSource = resolve(sourceRoot, path);
+  const sourcePath = !existsSync(currentSource) && legacyPath
+    ? resolve(sourceRoot, legacyPath)
+    : currentSource;
+  return { path, sourcePath, destinationPath, optional };
 });
+const missingSources = files.filter(({ sourcePath, destinationPath, optional }) =>
+  !existsSync(destinationPath) &&
+  (!existsSync(sourcePath) ? !optional : !lstatSync(sourcePath).isFile()),
+);
 
 if (missingSources.length > 0) {
-  for (const relativePath of missingSources) {
-    console.error(`Missing source file: ${resolve(sourceRoot, relativePath)}`);
+  for (const { sourcePath } of missingSources) {
+    console.error(`Missing source file: ${sourcePath}`);
   }
   process.exit(1);
 }
 
-for (const relativePath of envFiles) {
-  const sourcePath = resolve(sourceRoot, relativePath);
-  const destinationPath = resolve(destinationRoot, relativePath);
-
+for (const { path, sourcePath, destinationPath } of files) {
   if (existsSync(destinationPath)) {
-    console.log(`Skipped existing file: ${relativePath}`);
+    console.log(`Skipped existing file: ${path}`);
+    continue;
+  }
+
+  if (!existsSync(sourcePath)) {
+    console.log(`Skipped optional source file: ${path}`);
     continue;
   }
 
   mkdirSync(dirname(destinationPath), { recursive: true });
   copyFileSync(sourcePath, destinationPath, constants.COPYFILE_EXCL);
-  console.log(`Copied ${relativePath}`);
+  console.log(`Copied ${path}`);
 }
