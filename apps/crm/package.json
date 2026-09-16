@@ -1,0 +1,27 @@
+{
+  "name": "valoansforvets-crm",
+  "version": "1.0.0",
+  "description": "VA Loans for Vets CRM",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "setup:worktree": "node scripts/setup-worktree.mjs",
+    "dev:worktree": "node scripts/dev-worktree.mjs",
+    "dev:stop": "node scripts/dev-stop.mjs",
+    "dev": "pnpm --dir frontend dev",
+    "dev:frontend": "pnpm --dir frontend dev",
+    "build": "pnpm --dir frontend build",
+    "typecheck": "pnpm --dir frontend typecheck",
+    "lint": "pnpm --dir frontend lint",
+    "test": "pnpm --dir frontend test && node --test 'scripts/*.test.mjs' 'frontend/app/**/*.test.mjs'",
+    "test:e2e": "pnpm --dir frontend test:e2e",
+    "verify": "pnpm typecheck && pnpm lint && pnpm test && pnpm build",
+    "trigger:login": "pnpm --dir frontend trigger:login",
+    "trigger:dev": "pnpm --dir frontend trigger:dev"
+  },
+  "engines": {
+    "node": "24.x",
+    "pnpm": "11.10.0"
+  },
+  "packageManager": "pnpm@11.10.0+sha512.0b7f8b98060031904c017e3a41eb187a16d40eeb829b95c4f8cb03681761fc4ab53dd219115b9b447f4dce1a05a214764461e7d3703392a9f32f9511ce8c86c8"
+}
