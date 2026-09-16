@@ -9,7 +9,7 @@
         "http.server",
         "4173",
         "--directory",
-        "frontend/PHXHomeLoan-web-prototype"
+        "apps/phx-website/PHXHomeLoan-web-prototype"
       ],
       "port": 4173,
       "autoPort": false
@@ -19,7 +19,7 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": [
         "--dir",
-        "frontend",
+        "apps/phx-website",
         "run",
         "dev"
       ],
@@ -31,7 +31,7 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": [
         "--dir",
-        "frontend",
+        "apps/phx-website",
         "exec",
         "next",
         "dev",
@@ -46,7 +46,7 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": [
         "--dir",
-        "studio",
+        "apps/phx-studio",
         "run",
         "dev"
       ],
@@ -67,7 +67,7 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": [
         "--dir",
-        "frontend",
+        "apps/phx-website",
         "run",
         "start"
       ],

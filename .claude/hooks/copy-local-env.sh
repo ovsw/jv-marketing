@@ -8,13 +8,13 @@
 
 set -uo pipefail
 
-# Both studio names are listed: the README documents studio/.env.local, but
-# this checkout actually has studio/.env. Missing entries are skipped, so
+# Both Studio names are listed: the README documents apps/phx-studio/.env.local,
+# but this checkout actually has apps/phx-studio/.env. Missing entries are skipped, so
 # listing both costs nothing and covers either layout.
 FILES=(
-  "frontend/.env.local"
-  "studio/.env.local"
-  "studio/.env"
+  "apps/phx-website/.env.local"
+  "apps/phx-studio/.env.local"
+  "apps/phx-studio/.env"
 )
 
 payload="$(cat)"

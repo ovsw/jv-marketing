@@ -1,2 +1,2 @@
-frontend/.env.local
-studio/.env
+apps/phx-website/.env.local
+apps/phx-studio/.env

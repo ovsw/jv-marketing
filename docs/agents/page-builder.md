@@ -20,14 +20,14 @@ The section's Sanity `_type` is the shared identifier across every step. Keep it
 
 Start with the closest existing section and preserve the mirrored folder structure in Studio, queries, and renderers.
 
-1. Define the Studio schema in `studio/schemas/blocks/`.
-2. Register the schema and any supporting object schemas in `studio/schema-types.ts`.
-3. Add the top-level type to the Page schema's `blocks.of` list in `studio/schemas/documents/page.ts`.
+1. Define the Studio schema in `apps/phx-studio/schemas/blocks/`.
+2. Register the schema and any supporting object schemas in `apps/phx-studio/schema-types.ts`.
+3. Add the top-level type to the Page schema's `blocks.of` list in `apps/phx-studio/schemas/documents/page.ts`.
 4. Add the type to one insert-menu group in the same file.
-5. Add its preview image at `studio/static/images/preview/<type>.jpg`. The Page schema resolves this path by `_type`.
-6. Create its GROQ projection in `frontend/sanity/queries/` and interpolate it into `frontend/sanity/queries/page.ts`.
-7. Create its React renderer in `frontend/components/blocks/` and register it in the `componentMap` in `frontend/components/blocks/index.tsx`.
-8. Run TypeGen. Do not edit `studio/schema.json` or `frontend/sanity.types.ts` by hand.
+5. Add its preview image at `apps/phx-studio/static/images/preview/<type>.jpg`. The Page schema resolves this path by `_type`.
+6. Create its GROQ projection in `apps/phx-website/sanity/queries/` and interpolate it into `apps/phx-website/sanity/queries/page.ts`.
+7. Create its React renderer in `apps/phx-website/components/blocks/` and register it in the `componentMap` in `apps/phx-website/components/blocks/index.tsx`.
+8. Run TypeGen. Do not edit `apps/phx-studio/schema.json` or `apps/phx-website/sanity.types.ts` by hand.
 
 ## Add a nested block
 
@@ -37,16 +37,16 @@ A nested block is an object used only inside another section, such as a card ins
 
 Trace the whole vertical slice before editing:
 
-- Studio fields: `studio/schemas/blocks/`
-- GROQ data shape: `frontend/sanity/queries/`
-- Generated types: `frontend/sanity.types.ts`
-- React rendering: `frontend/components/blocks/`
+- Studio fields: `apps/phx-studio/schemas/blocks/`
+- GROQ data shape: `apps/phx-website/sanity/queries/`
+- Generated types: `apps/phx-website/sanity.types.ts`
+- React rendering: `apps/phx-website/components/blocks/`
 
 When a field is added, renamed, or removed, update the schema and projection together, regenerate types, and consider whether existing Sanity documents need compatibility handling or a migration.
 
 For visual changes, treat the existing design system as the default:
 
-- Reuse tokens from `frontend/app/globals.css`.
+- Reuse tokens from `apps/phx-website/app/globals.css`.
 - Reuse `SectionContainer`, shared buttons, and nearby block patterns before adding a new primitive.
 - Check the full page and mobile layout, not only the section in isolation.
 - Introduce a one-off value or variant only when the design intentionally requires it.
@@ -63,5 +63,5 @@ For visual changes, treat the existing design system as the default:
   pnpm typegen
   pnpm typecheck
   pnpm lint
-  pnpm --dir frontend build
+  pnpm --dir apps/phx-website build
   ```

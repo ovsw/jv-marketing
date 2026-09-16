@@ -190,7 +190,7 @@ export function devServerCommands(pair) {
   return [
     [
       "--dir",
-      "frontend",
+      "apps/phx-website",
       "exec",
       "next",
       "dev",
@@ -201,7 +201,7 @@ export function devServerCommands(pair) {
     ],
     [
       "--dir",
-      "studio",
+      "apps/phx-studio",
       "exec",
       "sanity",
       "dev",
