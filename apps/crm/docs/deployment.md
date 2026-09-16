@@ -1,18 +1,18 @@
 # Deployment
 
-The CRM is a standalone Next.js application. Vercel hosts the web app and
-Trigger.dev hosts its worker. One owner deploys the worker:
-`.github/workflows/deploy-worker.yml` on `main` pushes.
+The CRM is a Next.js application in the family monorepo. Vercel hosts the web
+app and Trigger.dev hosts its worker. One root workflow deploys the worker:
+`.github/workflows/deploy-crm-worker.yml` on `main` pushes.
 
 ## Vercel
 
-The private GitHub repository is deployed with `frontend` as the project
-root in the paid Studio ROVST team. Project ID:
+The monorepo is deployed with `apps/crm` as the project root in the paid
+Studio ROVST team. Project ID:
 `prj_YY6MeizqVoVEnsg7MRI41oD572D5`. Current URL:
 <https://valoansforvets-crm.vercel.app>.
 
 Production deploys use `main`. Set variables from
-`frontend/.env.local.example`, including the production Trigger secret and
+`apps/crm/.env.local.example`, including the production Trigger secret and
 the staff and test-recipient allowlists. The application remains a private
 test CRM until a real production data flow exists.
 

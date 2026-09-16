@@ -1,27 +1,31 @@
 # VALoansForVets CRM
 
-`valoansforvets-crm` is one private internal CRM for the team behind
+The Shared CRM is one private internal CRM for the team behind
 PHXHomeLoan.com and VALoansForVets.com. This repository owns the staff
 interface, database integration, and Trigger.dev worker.
+
+The CRM is the `apps/crm` workspace in the family monorepo. The root
+[`CONTEXT.md`](../../CONTEXT.md) and [`docs/adr`](../../docs/adr) directory own
+the shared language and architecture decisions.
 
 The current application supports staff-only test inquiries. It does not yet
 provide a quiz, an intake API, appointment booking, or marketing funnels.
 
 ## Local development
 
-Use Node.js 24.x and pnpm 11.10.0.
+Use Node.js 24.x and pnpm 11.10.0. Run commands from the monorepo root.
 
 ```bash
 pnpm install --frozen-lockfile
-pnpm dev
+pnpm dev:crm
 ```
 
-Copy `frontend/.env.local.example` to `frontend/.env.local` and fill in
+Copy `apps/crm/.env.local.example` to `apps/crm/.env.local` and fill in
 the development values before starting the app.
 
-Open <http://localhost:3000/crm> and sign in with a verified address in the
+Open <http://localhost:3200/crm> and sign in with a verified address in the
 `CRM_STAFF_EMAILS` allowlist. In a second terminal run `pnpm trigger:login`
-and then `pnpm trigger:dev`. The worker reads `frontend/.env.local`;
+and then `pnpm trigger:dev`. The worker reads `apps/crm/.env.local`;
 restart it after changing a value. Keep secrets server-only and do not commit
 the file.
 
@@ -45,7 +49,8 @@ ROVST team. The old Vercel alias redirects to the new address.
 See [CRM development flow](docs/crm-preview-setup.md) and
 [deployment](docs/deployment.md).
 
-## Migration record
+## History
 
-The repository and hosted project were repurposed on 2026-09-11.
-See [migration status and verification](docs/plans/crm-migration.md).
+The old CRM repository history is part of this monorepo. See
+[migration status and verification](docs/plans/crm-migration.md) for the
+earlier standalone cutover.

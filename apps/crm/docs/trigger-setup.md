@@ -1,7 +1,7 @@
 # Trigger.dev setup
 
 The shared CRM uses Trigger.dev project `proj_zufesthoajsdxpvfeqsr`. Tasks and
-`trigger.config.ts` live in `frontend/`. They support test inquiries and
+`trigger.config.ts` live in `apps/crm/`. They support test inquiries and
 simulated SMS.
 
 ## Local worker
@@ -12,17 +12,17 @@ simulated SMS.
 4. In the Development tasks page, test `infrastructure-check` with `{}`. It
    should return `status: "ok"` and `environment: "DEVELOPMENT"`.
 
-The worker reads `frontend/.env.local` at startup. Keep secrets out of
+The worker reads `apps/crm/.env.local` at startup. Keep secrets out of
 `NEXT_PUBLIC_*` variables.
 
 ## Hosted worker
 
 The hosted `prod` worker is a TEST worker. The single owner is
-`.github/workflows/deploy-worker.yml`, which deploys on `main` pushes that
+`.github/workflows/deploy-crm-worker.yml`, which deploys on `main` pushes that
 touch worker or database files. If a manual deployment is required:
 
 ```sh
-pnpm --dir frontend exec trigger deploy --env prod
+pnpm --dir apps/crm exec trigger deploy --env prod
 ```
 
 Set `PREVIEW_DATABASE_URL`, `PREVIEW_EMAIL_ENABLED`, `RESEND_API_KEY`,

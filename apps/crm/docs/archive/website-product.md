@@ -1,7 +1,7 @@
 > Historical website redesign brief, retained for business context.
 > Since 2026-09-11 this repository owns the shared internal CRM.
 > Website implementation belongs in the separate website repositories.
-> See ../adr/0001-shared-standalone-crm.md.
+> See the root [ADR 0002](../../../../docs/adr/0002-shared-standalone-crm.md).
 
 # Product
 

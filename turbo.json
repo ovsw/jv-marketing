@@ -6,7 +6,10 @@
       "cache": false,
       "persistent": true,
       "env": [
+        "CLERK_SECRET_KEY",
+        "CRM_STAFF_EMAILS",
         "NEXT_ALLOWED_DEV_ORIGINS",
+        "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
         "NEXT_PUBLIC_SANITY_API_VERSION",
         "NEXT_PUBLIC_SANITY_DATASET",
         "NEXT_PUBLIC_SANITY_PROJECT_ID",
@@ -14,8 +17,11 @@
         "NEXT_PUBLIC_SITE_URL",
         "NEXT_PUBLIC_STUDIO_URL",
         "OG_IMAGE_SECRET",
+        "PREVIEW_DATABASE_URL",
+        "PREVIEW_EMAIL_ENABLED",
         "RESEND_API_KEY",
         "RESEND_AUDIENCE_ID",
+        "RESEND_FROM",
         "SANITY_API_READ_TOKEN",
         "SANITY_STUDIO_API_VERSION",
         "SANITY_STUDIO_APP_ID",
@@ -23,6 +29,8 @@
         "SANITY_STUDIO_HOSTNAME",
         "SANITY_STUDIO_PREVIEW_URL",
         "SANITY_STUDIO_PROJECT_ID",
+        "TEST_EMAIL_ALLOWLIST",
+        "TRIGGER_SECRET_KEY",
         "YOUTUBE_API_KEY"
       ]
     },
@@ -30,6 +38,9 @@
       "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"],
       "env": [
+        "CLERK_SECRET_KEY",
+        "CRM_STAFF_EMAILS",
+        "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
         "NEXT_PUBLIC_SANITY_API_VERSION",
         "NEXT_PUBLIC_SANITY_DATASET",
         "NEXT_PUBLIC_SANITY_PROJECT_ID",
@@ -37,8 +48,11 @@
         "NEXT_PUBLIC_SITE_URL",
         "NEXT_PUBLIC_STUDIO_URL",
         "OG_IMAGE_SECRET",
+        "PREVIEW_DATABASE_URL",
+        "PREVIEW_EMAIL_ENABLED",
         "RESEND_API_KEY",
         "RESEND_AUDIENCE_ID",
+        "RESEND_FROM",
         "SANITY_API_READ_TOKEN",
         "SANITY_STUDIO_API_VERSION",
         "SANITY_STUDIO_APP_ID",
@@ -46,6 +60,8 @@
         "SANITY_STUDIO_HOSTNAME",
         "SANITY_STUDIO_PREVIEW_URL",
         "SANITY_STUDIO_PROJECT_ID",
+        "TEST_EMAIL_ALLOWLIST",
+        "TRIGGER_SECRET_KEY",
         "YOUTUBE_API_KEY"
       ]
     },
@@ -62,12 +78,23 @@
     "test": {
       "dependsOn": ["^build"],
       "outputs": [],
-      "env": []
+      "env": [
+        "CRM_STAFF_EMAILS",
+        "PREVIEW_DATABASE_URL",
+        "PREVIEW_EMAIL_ENABLED",
+        "RESEND_API_KEY",
+        "RESEND_FROM",
+        "TEST_EMAIL_ALLOWLIST",
+        "TRIGGER_SECRET_KEY"
+      ]
     },
     "test:e2e": {
       "cache": false,
       "env": [
         "CI",
+        "CLERK_SECRET_KEY",
+        "CRM_STAFF_EMAILS",
+        "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
         "NEXT_PUBLIC_SANITY_API_VERSION",
         "NEXT_PUBLIC_SANITY_DATASET",
         "NEXT_PUBLIC_SANITY_PROJECT_ID",
@@ -77,9 +104,14 @@
         "OG_IMAGE_SECRET",
         "PLAYWRIGHT_BASE_URL",
         "PLAYWRIGHT_REUSE_BUILD",
+        "PREVIEW_DATABASE_URL",
+        "PREVIEW_EMAIL_ENABLED",
         "RESEND_API_KEY",
         "RESEND_AUDIENCE_ID",
+        "RESEND_FROM",
         "SANITY_API_READ_TOKEN",
+        "TEST_EMAIL_ALLOWLIST",
+        "TRIGGER_SECRET_KEY",
         "VERCEL_AUTOMATION_BYPASS_SECRET",
         "YOUTUBE_API_KEY"
       ]

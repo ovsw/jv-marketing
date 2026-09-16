@@ -6,16 +6,16 @@ booking, or funnel implementation yet.
 
 ## Run locally
 
-From the repository root, run the app and worker in separate terminals:
+From the monorepo root, run the app and worker in separate terminals:
 
 ```sh
-pnpm dev
+pnpm dev:crm
 pnpm trigger:login
 pnpm trigger:dev
 ```
 
-Open <http://localhost:3000/crm>. Sign in with the verified staff address
-allowed by `CRM_STAFF_EMAILS`. The worker reads `frontend/.env.local`.
+Open <http://localhost:3200/crm>. Sign in with the verified staff address
+allowed by `CRM_STAFF_EMAILS`. The worker reads `apps/crm/.env.local`.
 
 ## Test behavior
 
@@ -50,9 +50,9 @@ SMS is enabled.
 Migration and backup commands:
 
 ```sh
-pnpm --dir frontend db:generate
-pnpm --dir frontend db:migrate:preview
-pnpm --dir frontend db:backup:preview
+pnpm db:generate:crm
+pnpm db:migrate:crm-preview
+pnpm db:backup:crm-preview
 ```
 
 Backups are local ignored archives. The September 11, 2026 archive index check

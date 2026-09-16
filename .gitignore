@@ -49,3 +49,5 @@ apps/phx-studio/backups/
 !.env*.example
 !.env.template
 !.env*.template
+apps/crm/.env.local
+apps/crm/backups/

@@ -1,4 +1,4 @@
-# PHXHomeLoan.com
+# The Highly Motivated Vercellino Team monorepo
 
 **Monorepo:** The project uses a pnpm workspace with Turborepo. Deployable applications live under `apps/`; shared workspace packages live under `packages/`. Root commands run the matching task across the workspace. Turborepo limits release checks and Vercel builds to affected applications.
 
@@ -15,6 +15,7 @@ Set the PHX website Vercel project **Root Directory** to `apps/phx-website` and 
 | ------------------- | ------------------------------------------------------------------- |
 | `apps/phx-website/` | PHX Next.js app (pages, API routes, `sanity.types.ts` from TypeGen) |
 | `apps/phx-studio/`  | PHX Sanity Studio (`sanity dev`, deploy, and schema extraction)     |
+| `apps/crm/`         | Shared CRM Next.js app, database migrations, and Trigger.dev tasks  |
 | `packages/`         | Shared workspace packages                                           |
 
 Install and dev commands are meant to be run from the **repository root** unless noted.
@@ -56,11 +57,12 @@ From the **repository root**:
 pnpm dev
 ```
 
-This starts the Next.js app and Studio together. To run only one workspace:
+This starts all applications. To run only one workspace:
 
 ```bash
 pnpm dev:phx-website # PHX website only
 pnpm dev:phx-studio  # PHX Studio only
+pnpm dev:crm         # Shared CRM only, on port 3200
 ```
 
 From a Git worktree, use:
@@ -106,6 +108,11 @@ in `apps/phx-studio/.env` must be able to read, create, and delete the project's
 - Open the Studio and sign in. In this monorepo, Studio runs at [http://localhost:3333](http://localhost:3333) when you use `pnpm dev` from the root (not at `/studio` inside Next.js). Use the same service (Google, GitHub, or email) that you used when you logged in to the CLI.
 
 Set `NEXT_PUBLIC_STUDIO_URL` in `apps/phx-website/.env.local` to `http://localhost:3333` locally, and `SANITY_STUDIO_PREVIEW_URL` in `apps/phx-studio/.env.local` to `http://localhost:3000`, so draft mode and Presentation previews resolve correctly.
+
+Copy `apps/crm/.env.local.example` to `apps/crm/.env.local` before you run the
+CRM. Open it at [http://localhost:3200/crm](http://localhost:3200/crm). See the
+[CRM development flow](apps/crm/docs/crm-preview-setup.md) for its worker and
+test-inquiry steps.
 
 ### Adding content with Sanity
 
@@ -164,6 +171,14 @@ The datasets are separate; edits to development do not change the live site.
 #### 5. Deploy Studio to Vercel (optional)
 
 Create a separate Vercel project with **Root Directory** `apps/phx-studio`, **Ignored Build Step** `npx turbo-ignore`, and the Studio environment variables from `apps/phx-studio/.env.local`.
+
+#### 6. Deploy the Shared CRM
+
+The existing CRM Vercel project uses **Root Directory** `apps/crm` and
+**Ignored Build Step** `npx turbo-ignore`. The root
+`.github/workflows/deploy-crm-worker.yml` workflow migrates the test database
+and deploys the Trigger.dev worker when its inputs change. See
+[CRM deployment](apps/crm/docs/deployment.md).
 
 ### Inviting collaborators
 
@@ -244,6 +259,12 @@ pnpm add <package-name> --filter frontend
 pnpm add <package-name> --filter studio
 ```
 
+**CRM:**
+
+```bash
+pnpm add <package-name> --filter crm
+```
+
 **Root:**
 
 ```bash
@@ -263,6 +284,7 @@ pnpm up --latest --recursive
 ```bash
 pnpm up --latest --filter frontend
 pnpm up --latest --filter studio
+pnpm up --latest --filter crm
 ```
 
 ## Environment variables
@@ -295,6 +317,15 @@ All environment variables and their descriptions:
 - `SANITY_STUDIO_API_VERSION` - your Sanity API version (same guidance as above). For example: YYYY-MM-DD.
 - `SANITY_AUTH_TOKEN` - your Sanity auth token for Studio deploy via GitHub Actions. Generate in Sanity Manage → API → Tokens with deploy permission.
 - `SANITY_STUDIO_APP_ID` - your Sanity Studio app ID from the first `sanity deploy`; avoids repeated hostname prompts.
+
+**Shared CRM (`apps/crm/.env.local`):**
+
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` - the Clerk application credentials.
+- `CRM_STAFF_EMAILS` - verified email addresses that can use the staff CRM.
+- `PREVIEW_DATABASE_URL` - the pinned Neon development branch used by the test-inquiry flow.
+- `TRIGGER_SECRET_KEY` - the Trigger.dev environment secret.
+- `TEST_EMAIL_ALLOWLIST` - staff addresses that can receive test email.
+- `PREVIEW_EMAIL_ENABLED`, `RESEND_API_KEY`, and `RESEND_FROM` - test-email controls.
 
 [react-url]: https://reactjs.org/
 [next-js-url]: https://nextjs.org/

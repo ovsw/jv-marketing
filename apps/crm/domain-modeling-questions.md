@@ -1,6 +1,6 @@
 # VALoansForVets.com client-call questions
 
-Questions and assumptions that only the client can confirm, plus historical evidence that informs future decisions. Record confirmed domain language in `CONTEXT.md` and remove its question here.
+Questions and assumptions that only the client can confirm, plus historical evidence that informs future decisions. Record confirmed domain language in the root [`CONTEXT.md`](../../CONTEXT.md) and remove its question here.
 
 ## Questions
 

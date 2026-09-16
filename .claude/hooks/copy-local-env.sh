@@ -15,6 +15,7 @@ FILES=(
   "apps/phx-website/.env.local"
   "apps/phx-studio/.env.local"
   "apps/phx-studio/.env"
+  "apps/crm/.env.local"
 )
 
 payload="$(cat)"

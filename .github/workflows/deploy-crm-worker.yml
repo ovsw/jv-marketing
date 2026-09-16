@@ -6,14 +6,14 @@ on:
   push:
     branches: [main]
     paths:
-      - "frontend/trigger/**"
-      - "frontend/trigger.config.ts"
-      - "frontend/db/**"
-      - "frontend/drizzle/**"
-      - "frontend/lib/crm/policy.ts"
-      - "frontend/scripts/migrate-preview.ts"
+      - "apps/crm/trigger/**"
+      - "apps/crm/trigger.config.ts"
+      - "apps/crm/db/**"
+      - "apps/crm/drizzle/**"
+      - "apps/crm/lib/crm/policy.ts"
+      - "apps/crm/scripts/migrate-preview.ts"
       - "pnpm-lock.yaml"
-      - ".github/workflows/deploy-worker.yml"
+      - ".github/workflows/deploy-crm-worker.yml"
   workflow_dispatch:
 
 concurrency:
@@ -35,21 +35,14 @@ jobs:
           persist-credentials: false
 
       - name: Set up pnpm and Node.js
-        uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2
-        with:
-          runtime: node@24
-          cache: true
-          install: false
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        uses: ./.github/actions/setup
 
       - name: Migrate the test database
-        run: pnpm --dir frontend exec node --import tsx scripts/migrate-preview.ts
+        run: pnpm --dir apps/crm exec node --import tsx scripts/migrate-preview.ts
         env:
           PREVIEW_DATABASE_URL: ${{ secrets.PREVIEW_DATABASE_URL }}
 
       - name: Deploy the worker to Trigger.dev prod
-        run: pnpm --dir frontend exec trigger deploy --env prod
+        run: pnpm --dir apps/crm exec trigger deploy --env prod
         env:
           TRIGGER_ACCESS_TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
