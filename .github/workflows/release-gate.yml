@@ -81,7 +81,8 @@ jobs:
           TURBO_SCM_BASE: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
           TURBO_SCM_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
-          if pnpm turbo run test:smoke --affected --dry=json | jq -e '.tasks | any(.package == "frontend")' >/dev/null; then
+          affected=$(pnpm turbo run test:smoke --affected --dry=json)
+          if echo "$affected" | jq -e '.tasks | any(.package == "frontend")' >/dev/null; then
             echo "website=true" >> "$GITHUB_OUTPUT"
           else
             echo "website=false" >> "$GITHUB_OUTPUT"
@@ -93,8 +94,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           DEPLOY_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-          DEPLOY_ENVIRONMENT: ${{ github.event_name == 'pull_request' && 'Preview' || 'Production' }}
-        run: echo "url=$(node scripts/wait-for-vercel-deployment.mjs)" >> "$GITHUB_OUTPUT"
+          DEPLOY_ENVIRONMENT: ${{ github.event_name == 'pull_request' && 'Preview – phxhomeloancom-2026' || 'Production – phxhomeloancom-2026' }}
+        run: |
+          url=$(node scripts/wait-for-vercel-deployment.mjs)
+          echo "url=$url" >> "$GITHUB_OUTPUT"
 
       - name: Run browser smoke tests
         if: steps.affected.outputs.website == 'true'
@@ -118,4 +121,4 @@ jobs:
           RESULTS: ${{ toJSON(needs.*.result) }}
         run: |
           echo "$RESULTS"
-          echo "$RESULTS" | grep -qvE '"(failure|cancelled|skipped)"' || exit 1
+          echo "$RESULTS" | jq -e 'length > 0 and all(. == "success")' >/dev/null

@@ -1,3 +1,4 @@
 apps/phx-website/.env.local
 apps/phx-studio/.env
+apps/phx-studio/.env.local
 apps/crm/.env.local

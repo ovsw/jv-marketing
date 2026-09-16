@@ -65,6 +65,20 @@ pnpm dev:phx-studio  # PHX Studio only
 pnpm dev:crm         # Shared CRM only, on port 3200
 ```
 
+T3 Code runs **Setup Worktree** when it creates a worktree. This copies local
+env files from `T3CODE_PROJECT_ROOT`, then installs dependencies with the frozen
+lockfile. To repeat setup from a worktree terminal, run:
+
+```bash
+pnpm setup:worktree /absolute/path/to/main-checkout
+pnpm install --frozen-lockfile
+```
+
+Setup keeps existing destination env files. It prefers source files under
+`apps/`, but can copy PHX files left in `frontend/` and `studio/` by the
+monorepo move. It also copies `apps/phx-studio/.env.local` and
+`apps/crm/.env.local` when present. Missing CRM config does not block PHX setup.
+
 From a Git worktree, use:
 
 ```bash

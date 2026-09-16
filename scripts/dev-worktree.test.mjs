@@ -38,6 +38,8 @@ test("registerShutdownSignals treats terminal closure as a server shutdown", () 
 test("devServerCommands binds both services to all network interfaces", () => {
   const [frontend, studio] = devServerCommands({ frontend: 3103, studio: 4103 });
 
+  assert.deepEqual(frontend.slice(0, 4), ["--dir", "apps/phx-website", "exec", "next"]);
+  assert.deepEqual(studio.slice(0, 4), ["--dir", "apps/phx-studio", "exec", "sanity"]);
   assert.deepEqual(frontend.slice(-4), ["--hostname", "0.0.0.0", "--port", "3103"]);
   assert.deepEqual(studio.slice(-4), ["--host", "0.0.0.0", "--port", "4103"]);
 });
