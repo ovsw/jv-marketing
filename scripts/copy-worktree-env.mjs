@@ -8,7 +8,7 @@ import {
 } from "node:fs";
 import { dirname, resolve } from "node:path";
 
-const envFiles = ["frontend/.env.local", "studio/.env"];
+const envFiles = ["apps/phx-website/.env.local", "apps/phx-studio/.env"];
 const sourceArgument = process.argv[2] ?? process.env.T3CODE_PROJECT_ROOT;
 
 if (!sourceArgument) {

@@ -34,12 +34,14 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
+          fetch-depth: 0
           persist-credentials: false
       - uses: ./.github/actions/setup
-      - name: Typecheck
-        run: pnpm typecheck
-      - name: Lint
-        run: pnpm lint
+      - name: Typecheck and lint affected packages
+        env:
+          TURBO_SCM_BASE: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
+          TURBO_SCM_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: pnpm turbo run typecheck lint --affected
 
   unit:
     name: Unit tests
@@ -48,10 +50,14 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
+          fetch-depth: 0
           persist-credentials: false
       - uses: ./.github/actions/setup
-      - name: Run unit tests
-        run: pnpm test
+      - name: Test affected packages
+        env:
+          TURBO_SCM_BASE: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
+          TURBO_SCM_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: pnpm turbo run test --affected
 
   smoke:
     # Vercel already builds every commit; the smoke test runs against that
@@ -62,11 +68,25 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
+          fetch-depth: 0
           persist-credentials: false
       - uses: ./.github/actions/setup
 
+      - name: Check whether the PHX website changed
+        id: affected
+        env:
+          TURBO_SCM_BASE: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
+          TURBO_SCM_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          if pnpm turbo run test:smoke --affected --dry=json | jq -e '.tasks | any(.package == "frontend")' >/dev/null; then
+            echo "website=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "website=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Wait for the Vercel deployment
         id: deployment
+        if: steps.affected.outputs.website == 'true'
         env:
           GITHUB_TOKEN: ${{ github.token }}
           DEPLOY_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -74,10 +94,13 @@ jobs:
         run: echo "url=$(node scripts/wait-for-vercel-deployment.mjs)" >> "$GITHUB_OUTPUT"
 
       - name: Run browser smoke tests
+        if: steps.affected.outputs.website == 'true'
         env:
           PLAYWRIGHT_BASE_URL: ${{ steps.deployment.outputs.url }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-        run: pnpm test:smoke
+          TURBO_SCM_BASE: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
+          TURBO_SCM_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: pnpm turbo run test:smoke --affected
 
   release-gate:
     # Single stable check name for branch protection. Runs even when a lane

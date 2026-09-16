@@ -22,12 +22,12 @@ dark theme, half the theming QA surface.
 ## Decision
 
 - Force the light theme site-wide via next-themes `forcedTheme="light"` in
-  `frontend/app/layout.tsx`. All dark styles are class-based
+  `apps/phx-website/app/layout.tsx`. All dark styles are class-based
   (`@custom-variant dark (&:is(.dark *))` in `globals.css`, no raw
   `prefers-color-scheme` media queries), so forcing the class fully disables
   dark mode.
 - Comment out the `<ModeToggle />` in
-  `frontend/components/header/site-header.tsx` (two spots: desktop and mobile
+  `apps/phx-website/components/header/site-header.tsx` (two spots: desktop and mobile
   action clusters).
 - Keep all the machinery in the repo — `ThemeProvider`,
   `components/menu-toggle.tsx`, all `dark:` styles — because this repo is
@@ -35,10 +35,10 @@ dark theme, half the theming QA surface.
 
 ## How to re-enable dark mode (this project or a template descendant)
 
-1. `frontend/app/layout.tsx`: on `<ThemeProvider>`, remove
+1. `apps/phx-website/app/layout.tsx`: on `<ThemeProvider>`, remove
    `forcedTheme="light"` and restore the commented `defaultTheme="system"` and
    `enableSystem` props.
-2. `frontend/components/header/site-header.tsx`: restore the `ModeToggle`
+2. `apps/phx-website/components/header/site-header.tsx`: restore the `ModeToggle`
    import and the two commented `<ModeToggle />` usages.
 3. Finish the deferred dark-mode polish pass before shipping it (surface
    contrast on popovers/menus against the header, menu shadow visibility).

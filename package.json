@@ -1,28 +1,34 @@
 {
   "name": "phxhomeloancom-2026",
   "version": "2.0.0",
-  "description": "phxhomeloan.com website and CMS",
+  "description": "Web properties and shared CRM for The Highly Motivated Vercellino Team",
   "private": true,
   "engines": {
     "node": ">=22.18"
   },
   "scripts": {
-    "dev": "pnpm --parallel -r run dev",
-    "dev:frontend": "pnpm run dev --workspace=frontend",
-    "dev:prototype": "python3 -m http.server 8000 --bind 127.0.0.1 --directory frontend/PHXHomeLoan-web-prototype",
-    "dev:studio": "pnpm run dev --workspace=studio",
+    "dev": "turbo run dev",
+    "dev:frontend": "turbo run dev --filter=frontend",
+    "dev:phx-website": "turbo run dev --filter=frontend",
+    "dev:prototype": "python3 -m http.server 8000 --bind 127.0.0.1 --directory apps/phx-website/PHXHomeLoan-web-prototype",
+    "dev:studio": "turbo run dev --filter=studio",
+    "dev:phx-studio": "turbo run dev --filter=studio",
     "dev:worktree": "node scripts/dev-worktree.mjs",
     "presentation:url": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/presentation-url.mjs",
     "setup:sanity-cors": "node scripts/setup-sanity-cors.mjs",
     "setup:worktree": "node scripts/copy-worktree-env.mjs",
-    "audit:seo-titles": "pnpm --dir studio audit:seo-titles",
-    "typegen": "cd studio && pnpm typegen",
-    "typecheck": "pnpm --dir frontend typecheck && pnpm --dir studio typecheck",
-    "lint": "pnpm --dir frontend lint",
-    "test": "pnpm --dir frontend test",
-    "test:e2e": "pnpm --dir frontend test:e2e",
-    "test:smoke": "pnpm --dir frontend test:smoke",
-    "export": "cd studio && sanity dataset export production sample-data.tar.gz"
+    "audit:seo-titles": "pnpm --dir apps/phx-studio audit:seo-titles",
+    "typegen": "pnpm --dir apps/phx-studio typegen",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e",
+    "test:smoke": "turbo run test:smoke",
+    "export": "pnpm --dir apps/phx-studio exec sanity dataset export production sample-data.tar.gz"
+  },
+  "devDependencies": {
+    "turbo": "^2.10.13"
   },
   "packageManager": "pnpm@11.10.0+sha512.0b7f8b98060031904c017e3a41eb187a16d40eeb829b95c4f8cb03681761fc4ab53dd219115b9b447f4dce1a05a214764461e7d3703392a9f32f9511ce8c86c8",
   "homepage": "https://www.phxhomeloan.com/"

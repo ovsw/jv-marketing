@@ -1,0 +1,107 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "globalDependencies": ["shared/**", "scripts/**"],
+  "tasks": {
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "env": [
+        "NEXT_ALLOWED_DEV_ORIGINS",
+        "NEXT_PUBLIC_SANITY_API_VERSION",
+        "NEXT_PUBLIC_SANITY_DATASET",
+        "NEXT_PUBLIC_SANITY_PROJECT_ID",
+        "NEXT_PUBLIC_SITE_ENV",
+        "NEXT_PUBLIC_SITE_URL",
+        "NEXT_PUBLIC_STUDIO_URL",
+        "OG_IMAGE_SECRET",
+        "RESEND_API_KEY",
+        "RESEND_AUDIENCE_ID",
+        "SANITY_API_READ_TOKEN",
+        "SANITY_STUDIO_API_VERSION",
+        "SANITY_STUDIO_APP_ID",
+        "SANITY_STUDIO_DATASET",
+        "SANITY_STUDIO_HOSTNAME",
+        "SANITY_STUDIO_PREVIEW_URL",
+        "SANITY_STUDIO_PROJECT_ID",
+        "YOUTUBE_API_KEY"
+      ]
+    },
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": [
+        "NEXT_PUBLIC_SANITY_API_VERSION",
+        "NEXT_PUBLIC_SANITY_DATASET",
+        "NEXT_PUBLIC_SANITY_PROJECT_ID",
+        "NEXT_PUBLIC_SITE_ENV",
+        "NEXT_PUBLIC_SITE_URL",
+        "NEXT_PUBLIC_STUDIO_URL",
+        "OG_IMAGE_SECRET",
+        "RESEND_API_KEY",
+        "RESEND_AUDIENCE_ID",
+        "SANITY_API_READ_TOKEN",
+        "SANITY_STUDIO_API_VERSION",
+        "SANITY_STUDIO_APP_ID",
+        "SANITY_STUDIO_DATASET",
+        "SANITY_STUDIO_HOSTNAME",
+        "SANITY_STUDIO_PREVIEW_URL",
+        "SANITY_STUDIO_PROJECT_ID",
+        "YOUTUBE_API_KEY"
+      ]
+    },
+    "lint": {
+      "dependsOn": ["^lint"],
+      "outputs": [],
+      "env": []
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"],
+      "outputs": [],
+      "env": []
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": [],
+      "env": []
+    },
+    "test:e2e": {
+      "cache": false,
+      "env": [
+        "CI",
+        "NEXT_PUBLIC_SANITY_API_VERSION",
+        "NEXT_PUBLIC_SANITY_DATASET",
+        "NEXT_PUBLIC_SANITY_PROJECT_ID",
+        "NEXT_PUBLIC_SITE_ENV",
+        "NEXT_PUBLIC_SITE_URL",
+        "NEXT_PUBLIC_STUDIO_URL",
+        "OG_IMAGE_SECRET",
+        "PLAYWRIGHT_BASE_URL",
+        "PLAYWRIGHT_REUSE_BUILD",
+        "RESEND_API_KEY",
+        "RESEND_AUDIENCE_ID",
+        "SANITY_API_READ_TOKEN",
+        "VERCEL_AUTOMATION_BYPASS_SECRET",
+        "YOUTUBE_API_KEY"
+      ]
+    },
+    "test:smoke": {
+      "cache": false,
+      "env": [
+        "CI",
+        "NEXT_PUBLIC_SANITY_API_VERSION",
+        "NEXT_PUBLIC_SANITY_DATASET",
+        "NEXT_PUBLIC_SANITY_PROJECT_ID",
+        "NEXT_PUBLIC_SITE_ENV",
+        "NEXT_PUBLIC_SITE_URL",
+        "NEXT_PUBLIC_STUDIO_URL",
+        "OG_IMAGE_SECRET",
+        "PLAYWRIGHT_BASE_URL",
+        "RESEND_API_KEY",
+        "RESEND_AUDIENCE_ID",
+        "SANITY_API_READ_TOKEN",
+        "VERCEL_AUTOMATION_BYPASS_SECRET",
+        "YOUTUBE_API_KEY"
+      ]
+    }
+  }
+}

@@ -1,20 +1,21 @@
 # PHXHomeLoan.com
 
-**Monorepo:** The project uses a **pnpm workspace** with a `frontend/` (Next.js) app and a `studio/` (Sanity Studio) app in one repository. Older guides referred to a single app folder; here, schemas and `sanity` CLI commands live under `studio/`, and the site lives under `frontend/`. Root scripts run both together (`pnpm dev`).
+**Monorepo:** The project uses a pnpm workspace with Turborepo. Deployable applications live under `apps/`; shared workspace packages live under `packages/`. Root commands run the matching task across the workspace. Turborepo limits release checks and Vercel builds to affected applications.
 
 [![Next.js][next-js]][next-js-url] [![Sanity][sanity]][sanity-url] [![React][react]][react-url] [![Typescript][typescript]][typescript-url] [![Tailwind][tailwind]][tailwind-url] [![Shadcn][shadcn]][shadcn-url]
 
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fserge-0v%2Fnext-js-sanity-starter&env=NEXT_PUBLIC_SITE_URL,NEXT_PUBLIC_SITE_ENV,NEXT_PUBLIC_SANITY_API_VERSION,NEXT_PUBLIC_SANITY_PROJECT_ID,NEXT_PUBLIC_SANITY_DATASET,SANITY_API_READ_TOKEN,RESEND_API_KEY,RESEND_AUDIENCE_ID,YOUTUBE_API_KEY&demo-title=Next.js%20Sanity%20Starter&demo-description=Next.js%20Sanity%20Starter%20by%20Schema%20UI&demo-url=https%3A%2F%2Fstarter.schemaui.com)
 
-For this monorepo, set the Vercel project **Root Directory** to `frontend` and add `NEXT_PUBLIC_STUDIO_URL` (and other vars from `frontend/.env.local.example`) in the project settings.
+Set the PHX website Vercel project **Root Directory** to `apps/phx-website` and its **Ignored Build Step** to `npx turbo-ignore`. Add `NEXT_PUBLIC_STUDIO_URL` and the other variables from `apps/phx-website/.env.local.example` in the project settings.
 
 ## Monorepo layout
 
-| Path        | Role                                                                 |
-| ----------- | -------------------------------------------------------------------- |
-| `frontend/` | Next.js app (pages, API routes, `sanity.types.ts` from TypeGen)      |
-| `studio/`   | Sanity Studio (`sanity dev`, `sanity deploy`, `schema.json` extract) |
+| Path                | Role                                                                |
+| ------------------- | ------------------------------------------------------------------- |
+| `apps/phx-website/` | PHX Next.js app (pages, API routes, `sanity.types.ts` from TypeGen) |
+| `apps/phx-studio/`  | PHX Sanity Studio (`sanity dev`, deploy, and schema extraction)     |
+| `packages/`         | Shared workspace packages                                           |
 
 Install and dev commands are meant to be run from the **repository root** unless noted.
 
@@ -32,7 +33,7 @@ cd phxhomeloancom-2026
 pnpm install
 ```
 
-Then create a project in [Sanity Manage](https://www.sanity.io/manage), add CORS origins for `http://localhost:3000` and `http://localhost:3333`, and copy `frontend/.env.local.example` → `frontend/.env.local` and `studio/.env.local.example` → `studio/.env.local`, filling in project ID, dataset, and tokens (see [Environment variables](#environment-variables)).
+Then create a project in [Sanity Manage](https://www.sanity.io/manage), add CORS origins for `http://localhost:3000` and `http://localhost:3333`, and copy `apps/phx-website/.env.local.example` to `apps/phx-website/.env.local` and `apps/phx-studio/.env.local.example` to `apps/phx-studio/.env.local`. Fill in the project ID, dataset, and tokens (see [Environment variables](#environment-variables)).
 
 This project uses [pnpm](https://pnpm.io). To install pnpm globally:
 
@@ -58,8 +59,8 @@ pnpm dev
 This starts the Next.js app and Studio together. To run only one workspace:
 
 ```bash
-pnpm dev:frontend    # frontend only
-pnpm dev:studio  # studio only
+pnpm dev:phx-website # PHX website only
+pnpm dev:phx-studio  # PHX Studio only
 ```
 
 From a Git worktree, use:
@@ -97,20 +98,20 @@ pnpm setup:sanity-cors
 
 All twenty origins allow credentials. The Next.js app needs them because Draft Mode sends a
 Viewer token from `SanityLive` in the browser; Studio needs them for authentication. The token
-in `studio/.env` must be able to read, create, and delete the project's CORS origins.
+in `apps/phx-studio/.env` must be able to read, create, and delete the project's CORS origins.
 
 #### 3. Open the app and sign in to the Studio
 
 - Open the Next.js app at [http://localhost:3000](http://localhost:3000)
 - Open the Studio and sign in. In this monorepo, Studio runs at [http://localhost:3333](http://localhost:3333) when you use `pnpm dev` from the root (not at `/studio` inside Next.js). Use the same service (Google, GitHub, or email) that you used when you logged in to the CLI.
 
-Set `NEXT_PUBLIC_STUDIO_URL` in `frontend/.env.local` to `http://localhost:3333` locally, and `SANITY_STUDIO_PREVIEW_URL` in `studio/.env.local` to `http://localhost:3000`, so draft mode and Presentation previews resolve correctly.
+Set `NEXT_PUBLIC_STUDIO_URL` in `apps/phx-website/.env.local` to `http://localhost:3333` locally, and `SANITY_STUDIO_PREVIEW_URL` in `apps/phx-studio/.env.local` to `http://localhost:3000`, so draft mode and Presentation previews resolve correctly.
 
 ### Adding content with Sanity
 
 #### 1. Extending the Sanity schema
 
-The schema for the `Page` document type lives at `studio/schemas/documents/page.ts` (legacy single-repo path: `sanity/schemas/document/page.ts`). You can [add more document types](https://www.sanity.io/docs/schema-types) to the schema to suit your needs.
+The schema for the `Page` document type lives at `apps/phx-studio/schemas/documents/page.ts` (legacy single-repo path: `sanity/schemas/document/page.ts`). You can [add more document types](https://www.sanity.io/docs/schema-types) to the schema to suit your needs.
 
 #### 2. Adding new components
 
@@ -129,19 +130,19 @@ Deploy your website to Vercel:
 1. Create a new repository on [GitHub](https://docs.github.com/en/migrations/importing-source-code/using-the-command-line-to-import-source-code/adding-locally-hosted-code-to-github).
 2. Push your code to GitHub
 3. Create a [new Vercel project](https://vercel.com/new)
-4. Connect your GitHub repository and import the project. For this monorepo, set **Root Directory** to `frontend`.
-5. Copy the environment variables from `frontend/.env.local` and paste them to your Vercel project settings. Vercel supports pasting all variables at once. Include `NEXT_PUBLIC_STUDIO_URL` pointing at your hosted Studio URL (no trailing slash).
+4. Connect your GitHub repository and import the project. Set **Root Directory** to `apps/phx-website` and **Ignored Build Step** to `npx turbo-ignore`.
+5. Copy the environment variables from `apps/phx-website/.env.local` and paste them to your Vercel project settings. Vercel supports pasting all variables at once. Include `NEXT_PUBLIC_STUDIO_URL` pointing at your hosted Studio URL (no trailing slash).
 6. Deploy
 
 #### 3. Deploy Sanity Studio (`sanity deploy`)
 
 Recommended: host Studio on `*.sanity.studio`.
 
-1. Set production values in `studio/.env.local` (or in CI — see below).
-2. From `studio`:
+1. Set production values in `apps/phx-studio/.env.local` (or in CI — see below).
+2. From `apps/phx-studio`:
 
 ```bash
-cd studio
+cd apps/phx-studio
 sanity deploy
 ```
 
@@ -150,7 +151,7 @@ After the first deploy, set `SANITY_STUDIO_APP_ID` from the CLI output so later 
 #### 4. Production Studio releases
 
 The GitHub `release-gate.yml` workflow checks `main` and pull requests. It does not deploy Studio.
-Deploy Studio from `studio/` with the reviewed dataset and the live preview origin:
+Deploy Studio from `apps/phx-studio/` with the reviewed dataset and the live preview origin:
 
 ```bash
 SANITY_STUDIO_DATASET=production SANITY_STUDIO_PREVIEW_URL=https://phxhomeloan.com pnpm exec sanity deploy
@@ -162,7 +163,7 @@ The datasets are separate; edits to development do not change the live site.
 
 #### 5. Deploy Studio to Vercel (optional)
 
-Create a separate Vercel project with **Root Directory** `studio` and the same `studio` environment variables as in `studio/.env.local`.
+Create a separate Vercel project with **Root Directory** `apps/phx-studio`, **Ignored Build Step** `npx turbo-ignore`, and the Studio environment variables from `apps/phx-studio/.env.local`.
 
 ### Inviting collaborators
 
@@ -172,7 +173,7 @@ They will be able to access the deployed Studio, where you can collaborate toget
 
 ### Contact form and optional newsletter
 
-The contact form uses Formspark through `frontend/app/actions/submit-contact-form.ts`.
+The contact form uses Formspark through `apps/phx-website/app/actions/submit-contact-form.ts`.
 Its recipient and delivery settings are managed in Formspark. The old
 `NEXT_RESEND_TO_EMAIL` and `NEXT_RESEND_FROM_EMAIL` variables do not control contact delivery.
 
@@ -183,24 +184,24 @@ To use the newsletter form, you need to configure Resend.
 1. Create a new [Resend account](https://resend.com/signup)
 2. Create a new [API key](https://resend.com/api-keys)
 3. Copy the [audience](https://resend.com/audiences) id
-4. Set the API key and audience ID in `frontend/.env.local` as `RESEND_API_KEY` and `RESEND_AUDIENCE_ID` (or in Vercel project settings)
+4. Set the API key and audience ID in `apps/phx-website/.env.local` as `RESEND_API_KEY` and `RESEND_AUDIENCE_ID` (or in Vercel project settings)
 
 ## Sanity TypeGen
 
-To generate the types, run the following commands from the **`studio`** folder (where `sanity.cli.ts` lives):
+To generate the types, run the following commands from **`apps/phx-studio`** (where `sanity.cli.ts` lives):
 
 ```bash
-cd studio
+cd apps/phx-studio
 npx sanity schema extract
 ```
 
-This generates `schema.json` in the `studio` folder.
+This generates `schema.json` in `apps/phx-studio`.
 
 ```bash
 npx sanity typegen generate
 ```
 
-This generates `frontend/sanity.types.ts` (output paths are set in `studio/sanity.cli.ts`).
+This generates `apps/phx-website/sanity.types.ts` (output paths are set in `apps/phx-studio/sanity.cli.ts`).
 
 **From the repository root** you can use the workspace shortcut:
 
@@ -211,6 +212,23 @@ pnpm typegen
 Run TypeGen whenever you change schemas or queries so the frontend stays in sync.
 
 ## Workspace commands
+
+Run the main checks from the repository root:
+
+```bash
+pnpm build
+pnpm lint
+pnpm typecheck
+pnpm test
+```
+
+The release gate sets `TURBO_SCM_BASE` and `TURBO_SCM_HEAD`, then runs each task with `--affected`. To inspect the same package selection locally, set those revisions and run, for example:
+
+```bash
+TURBO_SCM_BASE=origin/main TURBO_SCM_HEAD=HEAD pnpm turbo run test --affected
+```
+
+Each task's environment inputs are declared in `turbo.json`. Update that declaration when a task starts reading another environment variable.
 
 ### Installing packages
 
@@ -254,7 +272,7 @@ SEO title ownership and the future content-cleanup process are documented in
 
 All environment variables and their descriptions:
 
-**Next.js (`frontend/.env.local`):**
+**Next.js (`apps/phx-website/.env.local`):**
 
 - `NEXT_PUBLIC_SITE_URL` - your website url. For example, `https://yourwebsite.com` without trailing slash. Used for sitemap.ts , robots.ts , and for client.ts
 - `NEXT_PUBLIC_SITE_ENV` - specifies the environment type (development/production) and affects metadata configuration. Setting this to "development" prevents search engine indexing, which is useful for staging environments (e.g., `staging.yourwebsite.com`).
@@ -268,7 +286,7 @@ All environment variables and their descriptions:
 - `RESEND_AUDIENCE_ID` - your RESEND audience id for the newsletter form to store contacts.
 - `YOUTUBE_API_KEY` - a YouTube Data API v3 key (restrict it to that API in the Google Cloud console). Used at build/revalidate time to fetch video metadata for automatic VideoObject JSON-LD. Optional: when absent, pages render normally without video schema. Remember to add it to the Vercel project settings too.
 
-**Studio (`studio/.env.local`):**
+**Studio (`apps/phx-studio/.env.local`):**
 
 - `SANITY_STUDIO_PREVIEW_URL` - your Next.js site url for preview. For example, `https://yourwebsite.com` or `http://localhost:3000` locally, without trailing slash. Used for Draft Mode in Presentation Tool or iframe preview.
 - `SANITY_STUDIO_PROJECT_ID` - your Sanity project ID. For example, abc12345.

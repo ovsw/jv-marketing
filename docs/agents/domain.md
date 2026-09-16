@@ -17,8 +17,10 @@ If either doesn't exist, **proceed silently**. Don't flag its absence or suggest
 ├── docs/adr/
 │   ├── 0001-event-sourced-orders.md
 │   └── 0002-postgres-for-write-model.md
-├── frontend/
-└── studio/
+├── apps/
+│   ├── phx-studio/
+│   └── phx-website/
+└── packages/
 ```
 
 ## Use the glossary's vocabulary

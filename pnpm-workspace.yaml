@@ -1,6 +1,6 @@
 packages:
-  - "studio"
-  - "frontend"
+  - "apps/*"
+  - "packages/*"
 
 strictDepBuilds: true
 minimumReleaseAge: 1440

@@ -40,7 +40,7 @@ export function planCorsChanges(
 async function readSanityEnvironment(projectRoot) {
   let envFile = {};
   try {
-    envFile = parseEnv(await readFile(resolve(projectRoot, "studio/.env"), "utf8"));
+    envFile = parseEnv(await readFile(resolve(projectRoot, "apps/phx-studio/.env"), "utf8"));
   } catch (error) {
     if (error?.code !== "ENOENT") {
       throw error;
@@ -51,7 +51,7 @@ async function readSanityEnvironment(projectRoot) {
 
   if (!projectId || !token) {
     throw new Error(
-      "studio/.env must define SANITY_STUDIO_PROJECT_ID and SANITY_AUTH_TOKEN.",
+      "apps/phx-studio/.env must define SANITY_STUDIO_PROJECT_ID and SANITY_AUTH_TOKEN.",
     );
   }
 
@@ -160,7 +160,7 @@ if (isMainModule) {
   main().catch((error) => {
     console.error(`Could not configure Sanity CORS: ${error.message}`);
     console.error(
-      "Ensure the SANITY_AUTH_TOKEN in studio/.env can read, create, and delete project CORS origins.",
+      "Ensure the SANITY_AUTH_TOKEN in apps/phx-studio/.env can read, create, and delete project CORS origins.",
     );
     process.exitCode = 1;
   });

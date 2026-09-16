@@ -6,7 +6,7 @@
 //   pnpm presentation:url blogIndex
 //
 // The path comes from the same resolver the Studio's "Open in Presentation"
-// action uses (studio/presentation/routes.ts), so the two never disagree.
+// action uses (apps/phx-studio/presentation/routes.ts), so the two never disagree.
 // The Studio port is resolved the same way `pnpm dev:worktree` assigns it:
 // STUDIO_PORT, then .worktree-ports.json, then the plain `pnpm dev` port.
 // A worktree never falls back to the plain port: Studio and frontend ports
@@ -18,7 +18,7 @@ import { createConnection } from "node:net";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { getPresentationPath } from "../studio/presentation/routes.ts";
+import { getPresentationPath } from "../apps/phx-studio/presentation/routes.ts";
 
 const DEFAULT_STUDIO_PORT = 3333;
 const PORT_FILE_NAME = ".worktree-ports.json";
