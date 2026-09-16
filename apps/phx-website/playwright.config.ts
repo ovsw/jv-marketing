@@ -14,7 +14,7 @@ export default defineConfig({
   use: {
     baseURL,
     channel: "chrome",
-    trace: "retain-on-failure",
+    trace: "off",
     extraHTTPHeaders: bypassSecret
       ? { "x-vercel-protection-bypass": bypassSecret, "x-vercel-set-bypass-cookie": "true" }
       : undefined,

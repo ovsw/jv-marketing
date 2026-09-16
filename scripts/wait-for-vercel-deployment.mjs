@@ -3,7 +3,8 @@
 // Prints the URL on stdout so a workflow step can capture it.
 //
 // Env: GITHUB_REPOSITORY, GITHUB_TOKEN, DEPLOY_SHA, DEPLOY_ENVIRONMENT
-// ("Preview" | "Production"), optional DEPLOY_TIMEOUT_MS (default 10 min).
+// (the exact GitHub environment, e.g. "Production – phxhomeloancom-2026"),
+// optional DEPLOY_TIMEOUT_MS (default 10 min).
 
 const { GITHUB_REPOSITORY, GITHUB_TOKEN, DEPLOY_SHA, DEPLOY_ENVIRONMENT } = process.env;
 const timeoutMs = Number(process.env.DEPLOY_TIMEOUT_MS ?? 10 * 60 * 1000);
