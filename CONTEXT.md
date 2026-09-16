@@ -14,7 +14,7 @@ enter through either Web Property. One customer relationship can include
 requests from both brands. Confirmed by the project owner, 2026-09-11.
 
 **The Highly Motivated Vercellino Team**:
-The mortgage originator behind VALoansForVets.com. The team is led by Jimmy Vercellino.
+The mortgage originator behind PHXHomeLoan.com and VALoansForVets.com. The team is led by Jimmy Vercellino.
 
 **Mortgage Originator**:
 The role held by The Highly Motivated Vercellino Team.
@@ -35,7 +35,7 @@ The personal brand and leader of The Highly Motivated Vercellino Team. He specia
 A mortgage brand of The Highly Motivated Vercellino Team and its Web Property, exclusively for veterans nationwide, with a focus on VA loans. Every veteran is served through this brand regardless of Origin Brand or Mortgage Product; its public display name is **VA Loans for Vets**. Confirmed by the project owner, 2026-09-09.
 
 **PHXHomeLoan.com**:
-The sister mortgage brand and Web Property of VALoansForVets.com, operated by the same team with Luminate Bank as lender. It has a broader mortgage focus and can capture a veteran, but a veteran is served and nurtured through VALoansForVets.com. Confirmed by the project owner, 2026-09-09.
+The sister mortgage brand and Web Property of VALoansForVets.com, operated by the same team with Luminate Bank as lender. Its domain includes education, marketing, lead generation, Nurture, and conversion before handing a Prospective Borrower to Luminate Bank for the Mortgage Application. It has a broader mortgage focus and can capture a veteran, but a veteran is served and nurtured through VALoansForVets.com. Confirmed by the project owner, 2026-09-09.
 
 **PHX Home Loan**:
 The public display name of PHXHomeLoan.com. It is not a separate organization.
@@ -58,7 +58,7 @@ A website operated by The Highly Motivated Vercellino Team on its own domain. Th
 The Web Property through which a person first contacts the team. It is retained for attribution, but veteran status—not Origin Brand—determines whether the person is served and nurtured through VALoansForVets.com. Confirmed by the project owner, 2026-09-09.
 
 **Web Page**:
-Any public destination on VALoansForVets.com, including the homepage, blog index, Evergreen Pages, and Blog Posts.
+Any public destination on a Web Property, including the homepage, blog index, Evergreen Pages, and Blog Posts.
 
 **Evergreen Page**:
 A Web Page with enduring content that is not the homepage, blog index, or a Blog Post.
@@ -67,17 +67,17 @@ A Web Page with enduring content that is not the homepage, blog index, or a Blog
 A Web Page for one defined Audience and Marketing Funnel, centered on one primary Conversion Point. Unlike an Evergreen Page, it does not serve several unrelated next steps.
 
 **Blog Post**:
-A dated educational item published on VALoansForVets.com with an author and category. **Post** is acceptable shorthand when the context is clear.
+A dated educational item published on a Web Property with an author and category. **Post** is acceptable shorthand when the context is clear.
 _Avoid_: Article, Educational Content
 
 **Blog Post Author**:
 The person credited with creating a Blog Post. A Blog Post Author may also be a Team Member, but neither role implies the other.
 
 **Review**:
-Customer feedback independently published on a third-party platform. VALoansForVets.com may use Google and Zillow Reviews from veteran Customers. Confirmed by the project owner, 2026-09-08.
+Customer feedback independently published on a third-party platform, such as Google or Zillow. VALoansForVets.com uses Reviews from veteran Customers. Confirmed by the project owner, 2026-09-08.
 
 **Testimonial**:
-A Customer statement supplied directly for use by VALoansForVets.com.
+A Customer statement supplied directly for use by a Web Property.
 
 ### Audiences and lifecycle
 
@@ -86,14 +86,14 @@ One human known to the Shared CRM across both Web Properties, identified by emai
 _Avoid_: Contact, Borrower Profile, User
 
 **Prospective Borrower**:
-A veteran exploring a home purchase, refinance, or mortgage options through VALoansForVets.com, whether or not they have contacted the team or begun a formal application.
+A person exploring a home purchase, refinance, or mortgage options through a Web Property, whether or not they have contacted the team or begun a formal application.
 _Avoid_: Prospective Customer
 
 **Visitor**:
-A person while they are using VALoansForVets.com. This describes their current interaction with the website, not their lending relationship.
+A person while they are using a Web Property. This describes their current interaction with the website, not their lending relationship.
 
 **Audience**:
-A defined group of veterans with a shared mortgage need, situation, or acquisition source, targeted by Organic Content, Paid Media, or a Marketing Funnel. Membership in an Audience does not establish VA loan eligibility or loan approval.
+A defined group of people with a shared mortgage need, situation, or acquisition source, targeted by Organic Content, Paid Media, or a Marketing Funnel. Membership in an Audience does not establish loan eligibility or approval.
 
 **Audience Segment**:
 A subgroup within an Audience, distinguished by more specific criteria so its Marketing and Nurture can address its needs more precisely. **Segment** is acceptable shorthand when the Audience is clear.
@@ -114,7 +114,7 @@ A purchase-focused Prospective Borrower who wants to be in a new home within 90 
 The main obstacle for First-Time Buyers: connected questions about how VA loans work, how much money and time they need, what credit they need, whether they qualify, and what they can afford. Confirmed in the strategy meeting, 2026-09-08.
 
 **Audience Member**:
-One person within an Audience, whether or not they have visited VALoansForVets.com.
+One person within an Audience, whether or not they have visited a Web Property.
 
 **Engaged Lead**:
 A veteran who gives usable contact information through their own request or submission to either Web Property, such as taking an Assessment or asking for help. The request itself is the engagement; Origin Brand does not change how the veteran is served. **Lead** is acceptable shorthand when the context is clear.
@@ -157,7 +157,7 @@ A Consultation Outcome used when The Highly Motivated Vercellino Team and the ve
 The record of a scheduled Consultation, including when it will happen and whether it is booked, completed, cancelled, or missed. A cancelled or missed Appointment does not change the person's Lifecycle Stage and enters rebooking after Personal Follow-Up. Confirmed by the project owner, 2026-09-09.
 
 **Scheduling Provider**:
-A service that handles Consultation availability, time zones, booking, and rescheduling.
+A service that handles Consultation availability, time zones, booking, and rescheduling. It does not own the Appointment or determine Marketing Automation.
 
 **Opportunity**:
 One mortgage need that Jimmy Vercellino has agreed to pursue, such as a purchase or a refinance. It belongs to a person but is not a Lifecycle Stage; a person can have several Opportunities at once or over time, each with its own progress.
@@ -180,7 +180,7 @@ _Avoid_: Evangelist
 The progression of a person's relationship with The Highly Motivated Vercellino Team, described by Audience Member, Visitor, Engaged Lead, Marketing Qualified Lead, Sales Qualified Lead, Customer, and Advocate. An Opportunity is a mortgage need attached to the person and does not appear in this progression.
 
 **Lifecycle Stage**:
-The furthest confirmed relationship milestone a person has reached in the Customer Lifecycle, shared across both Web Properties and separate from the progress of any Opportunity. A missed or cancelled Appointment and a new Opportunity do not move the person to an earlier stage. Confirmed by the project owner, 2026-09-09.
+The furthest confirmed relationship milestone a person has reached in the Customer Lifecycle, shared across both Web Properties and separate from the progress of any Opportunity. Audience Member and Visitor roles can overlap with later stages, and a missed or cancelled Appointment or a new Opportunity does not move the person to an earlier stage. Confirmed by the project owner, 2026-09-09.
 
 ### Marketing and conversion
 
@@ -188,7 +188,7 @@ The furthest confirmed relationship milestone a person has reached in the Custom
 The plan that defines the brand’s target Audiences, their needs, the value offered to them, and the routes and measures used to attract and convert them. Marketing Funnels are part of the Marketing Strategy.
 
 **Lead Magnet**:
-A free offer that attracts veterans by helping them solve a specific mortgage-related problem. The initial Lead Magnet of VALoansForVets.com is a three-minute Assessment with a Readiness Score and Action Plan. Confirmed in the strategy meeting, 2026-09-08.
+A free offer, delivered once or as a time-bounded series, that attracts Audience Members by helping them solve a specific mortgage-related problem in exchange for contact information. The initial Lead Magnet of VALoansForVets.com is a three-minute Assessment with a Readiness Score and Action Plan. Confirmed in the strategy meeting, 2026-09-08.
 
 **Assessment**:
 A short quiz that identifies a veteran's mortgage need and potential readiness from self-reported answers, without documents. It covers service history, state, budget, timeline, credit range, recent payment history, target loan amount, and whether the veteran has a real estate agent; it does not establish VA loan eligibility or loan approval. Confirmed in the strategy meeting, 2026-09-08.
@@ -215,14 +215,14 @@ An Assessment result from 0 to 100 that indicates a veteran's potential readines
 A recommended next step based on a veteran's Assessment answers and Readiness Score, delivered within minutes of finishing the Assessment. It uses conditional language and provides useful guidance without requiring the veteran to book a Consultation.
 
 **Marketing Funnel**:
-A planned route for one defined Audience from first contact toward a mortgage relationship with The Highly Motivated Vercellino Team. A route may include content, Landing Pages, Lead Magnets, Conversion Points, and Nurture.
+A planned route for one defined Audience from first contact toward a mortgage relationship with The Highly Motivated Vercellino Team. A route may include content, Landing Pages, Lead Magnets, Conversion Points, and Nurture. A Web Property can support several Marketing Funnels.
 _Avoid_: Conversion Funnel
 
 **Marketing Funnel Version**:
 A published edition of a Marketing Funnel's content, offers, Guidance Promise, and Nurture Sequences. Each Engaged Lead stays on the version they entered until it finishes; a new version applies only to Engaged Leads who enter after that version is published. Confirmed by the project owner, 2026-09-09.
 
 **Nurture**:
-Useful, consented follow-up that delivers the Guidance Promise and helps a veteran progress toward their Mortgage Goal. All veterans receive the same applicable Nurture Sequence regardless of Origin Brand, and marketing Nurture ends when a Mortgage Application starts. Confirmed by the project owner, 2026-09-09.
+Useful, consented follow-up that delivers the Guidance Promise and helps a person progress toward their Mortgage Goal. Content and ads shown before contact information is captured attract an Audience Member rather than nurture a known Engaged Lead. All veterans receive the same applicable Nurture Sequence regardless of Origin Brand, and marketing Nurture ends when a Mortgage Application starts. Confirmed by the project owner, 2026-09-09.
 
 **Guidance Promise**:
 Information and step-by-step guidance that coaches a veteran toward their stated Mortgage Goal. It helps them understand their path and next action without promising eligibility, approval, or a particular loan result. Confirmed by the project owner, 2026-09-09.
@@ -255,7 +255,7 @@ Purchased distribution of Ad Creative to a defined Audience.
 Automated processes that capture, route, follow up with, and measure Leads across Marketing Funnels. Nurture is one purpose of Marketing Automation.
 
 **Marketing Event**:
-A record of something meaningful that happened in a Marketing Funnel, such as consent, message delivery, a reply, an Unsubscribe, or a Consultation booking.
+An append-only record of something meaningful that happened in a Marketing Funnel, such as consent, message delivery, a reply, an Unsubscribe, or a Consultation booking.
 
 **Conversion Point**:
 An intentional opportunity for an Audience Member, Visitor, or Engaged Lead to complete a measurable action that moves them forward, such as submitting a form or quiz, requesting a Lead Magnet, calling, or following a tracked Apply Link.
@@ -279,10 +279,10 @@ The Department of Veterans Affairs record used to confirm a veteran's eligibilit
 A call or website form that lets a Prospective Borrower contact The Highly Motivated Vercellino Team.
 
 **Apply Link**:
-A link or button on VALoansForVets.com that leads to Luminate Bank's website and Mortgage Application.
+A link or button on a Web Property that leads to Luminate Bank's website and Mortgage Application.
 
 **Mortgage Application**:
-The formal application hosted and owned by Luminate Bank. Starting it ends marketing Nurture; Luminate Bank tells Jimmy Vercellino of application and closing updates, and a direct applicant is booked for a Consultation. Confirmed by the project owner, 2026-09-09.
+The formal application hosted and owned by Luminate Bank; it never takes place on a Web Property. Starting it ends marketing Nurture; Luminate Bank tells Jimmy Vercellino of application and closing updates, and a direct applicant is booked for a Consultation. Confirmed by the project owner, 2026-09-09.
 
 **Nationwide Audience**:
 The veterans VALoansForVets.com aims to reach throughout the United States. This describes the brand’s geographic focus; it does not establish where the team can originate a mortgage.
