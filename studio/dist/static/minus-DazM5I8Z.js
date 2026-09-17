@@ -1,0 +1,1 @@
+import{n as e}from"./sanity-DQgwfzxq.js";var t=[[`path`,{d:`M5 12h14`,key:`1ays0h`}]],n=e(`minus`,t);export{t as __iconNode,n as default};

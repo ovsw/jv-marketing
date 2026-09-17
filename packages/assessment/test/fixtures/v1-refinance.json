@@ -1,0 +1,39 @@
+{
+  "submissionId": "123e4567-e89b-42d3-a456-426614174000",
+  "assessmentVersion": "1",
+  "contact": {
+    "email": "sample@example.com",
+    "firstName": "Sample",
+    "lastName": "Person"
+  },
+  "consent": {
+    "promiseText": "Send me my requested guidance and related email from PHX Home Loan.",
+    "channels": [
+      "email"
+    ],
+    "timestamp": "2026-09-17T10:00:00Z"
+  },
+  "answers": {
+    "property_state": "AZ",
+    "credit_range": "at_least_720",
+    "late_payments": "no",
+    "marital_status": "unmarried",
+    "mortgage_type": "conventional",
+    "bankruptcy": "no",
+    "mortgage_goal": "refinance",
+    "refinance_goals": [
+      "lower_payment_rate",
+      "other"
+    ],
+    "refinance_home_type": "single_family",
+    "refinance_occupancy": "primary",
+    "mortgage_balance": 300000,
+    "mortgage_rate": 6.125,
+    "refinance_income": "from_100k_to_149k",
+    "refinance_source": "search",
+    "refinance_upfront": "own_funds",
+    "refinance_reserves": "three_or_more"
+  },
+  "reportedScore": 100,
+  "actionPlan": "refinance_discussion"
+}

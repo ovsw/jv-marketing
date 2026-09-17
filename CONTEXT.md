@@ -191,7 +191,7 @@ The plan that defines the brand’s target Audiences, their needs, the value off
 A free offer, delivered once or as a time-bounded series, that attracts Audience Members by helping them solve a specific mortgage-related problem in exchange for contact information. The initial Lead Magnet of VALoansForVets.com is a three-minute Assessment with a Readiness Score and Action Plan. Confirmed in the strategy meeting, 2026-09-08.
 
 **Assessment**:
-A short quiz that identifies a veteran's mortgage need and potential readiness from self-reported answers, without documents. It covers service history, state, budget, timeline, credit range, recent payment history, target loan amount, and whether the veteran has a real estate agent; it does not establish VA loan eligibility or loan approval. Confirmed in the strategy meeting, 2026-09-08.
+A short quiz that identifies a Prospective Borrower's mortgage need and potential readiness from self-reported answers, without documents; it does not establish loan eligibility or approval. The PHXHomeLoan.com Assessment serves veterans and non-veterans on purchase and refinance paths. Scope confirmed by the project owner, 2026-09-17.
 
 **Assessment Definition**:
 The Shared CRM's specification of an Assessment: its questions, their meaning, which ones are required, the valid answer options, and the canonical label for each option. The Shared CRM owns it; a Web Property renders it and may restyle or rephrase wording, but may not add, remove, or reinterpret a question or option. It changes only through a deliberate release by the marketing consultant, never by Team Members inside the CRM. Confirmed by the project owner, 2026-09-16.
@@ -209,10 +209,10 @@ The permanent record of one completed Assessment as received from a Web Property
 _Avoid_: Quiz Response, Form Entry, Inquiry
 
 **Readiness Score**:
-An Assessment result from 0 to 100 that indicates a veteran's potential readiness and selects a recommended next step. It is not a loan estimate, promise, eligibility decision, or approval. Confirmed in the strategy meeting, 2026-09-08.
+An Assessment result from 0 to 100 that indicates a Prospective Borrower's potential financial readiness, separate from their intended purchase date and the team's follow-up priority. It is unavailable when essential scoring information is unknown and is never a loan estimate, promise, eligibility decision, or approval. Confirmed by the project owner, 2026-09-17.
 
 **Action Plan**:
-A recommended next step based on a veteran's Assessment answers and Readiness Score, delivered within minutes of finishing the Assessment. It uses conditional language and provides useful guidance without requiring the veteran to book a Consultation.
+A recommended next step based on a Prospective Borrower's Assessment answers and Readiness Score when available, delivered within minutes of finishing the Assessment. It uses conditional language and provides useful guidance, including how to resolve missing information, without requiring the person to book a Consultation. Confirmed by the project owner, 2026-09-17.
 
 **Marketing Funnel**:
 A planned route for one defined Audience from first contact toward a mortgage relationship with The Highly Motivated Vercellino Team. A route may include content, Landing Pages, Lead Magnets, Conversion Points, and Nurture. A Web Property can support several Marketing Funnels.

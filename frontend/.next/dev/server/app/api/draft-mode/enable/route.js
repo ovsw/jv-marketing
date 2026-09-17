@@ -1,0 +1,10 @@
+var R=require("../../../../chunks/[turbopack]_runtime.js")("server/app/api/draft-mode/enable/route.js")
+R.c("server/chunks/node_modules__pnpm_1vdc67k._.js")
+R.c("server/chunks/087t_next_0j3sorl._.js")
+R.c("server/chunks/0ysz_rxjs_dist_cjs_15cut4a._.js")
+R.c("server/chunks/1rxy_@sanity_client_dist_1qnc8ls._.js")
+R.c("server/chunks/node_modules__pnpm_1vygb1u._.js")
+R.c("server/chunks/[root-of-the-server]__05cegbx._.js")
+R.c("server/chunks/frontend__next-internal_server_app_api_draft-mode_enable_route_actions_1ho4kb-.js")
+R.m("[project]/node_modules/.pnpm/next@16.3.0_@babel+core@7.29.7_@playwright+test@1.62.1_@types+node@26.1.0_babel-plugin-_3b64392720bc9294ad1f40cae38bcee9/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/frontend/app/api/draft-mode/enable/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)")
+module.exports=R.m("[project]/node_modules/.pnpm/next@16.3.0_@babel+core@7.29.7_@playwright+test@1.62.1_@types+node@26.1.0_babel-plugin-_3b64392720bc9294ad1f40cae38bcee9/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/frontend/app/api/draft-mode/enable/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)").exports
