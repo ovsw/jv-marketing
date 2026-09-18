@@ -50,7 +50,8 @@
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "@phx/assessment": "workspace:*"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
