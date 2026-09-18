@@ -1,8 +1,8 @@
 # Trigger.dev setup
 
 The shared CRM uses Trigger.dev project `proj_zufesthoajsdxpvfeqsr`. Tasks and
-`trigger.config.ts` live in `apps/crm/`. They support test inquiries and
-simulated SMS.
+`trigger.config.ts` live in `apps/crm/`. They support Assessment intake,
+test inquiries, and simulated SMS.
 
 ## Local worker
 
@@ -34,3 +34,16 @@ Keep the worker on the pinned Neon development branch.
 and records simulated SMS. `simulate-sms` accepts no borrower data and makes
 no provider call. These tasks are not an intake API, booking system, or
 production messaging integration.
+
+## Assessment intake tasks
+
+`assessment-submission` accepts only a submission ID. It marks that saved
+submission handled and records the worker run ID without sending messages.
+`redispatch-assessment-submissions` retries pending dispatches every five minutes.
+It reports a skipped run until `DATABASE_URL` is set in the worker environment.
+It never falls back to `PREVIEW_DATABASE_URL`.
+
+Apply intake migrations before setting `DATABASE_URL`. Use the same database
+as the CRM deployment that dispatches to this Trigger environment. The existing
+workflow deploys both intake tasks and their shared dispatch code. Live intake
+configuration remains part of #105. See [intake setup](intake.md).

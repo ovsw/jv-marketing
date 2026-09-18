@@ -36,6 +36,13 @@
       "when": 1789707794673,
       "tag": "0004_optimal_komodo",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789727360000,
+      "tag": "0005_assessment_worker_run",
+      "breakpoints": true
     }
   ]
 }

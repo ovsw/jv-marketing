@@ -67,6 +67,7 @@ export const assessmentSubmissions = pgTable(
     dispatchState: text("dispatch_state", { enum: ["pending", "handled"] })
       .default("pending")
       .notNull(),
+    runId: text("run_id"),
     receivedAt: timestamp("received_at", { withTimezone: true })
       .defaultNow()
       .notNull(),

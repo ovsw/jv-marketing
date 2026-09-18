@@ -33,9 +33,10 @@ repository root:
 pnpm --filter crm db:migrate:intake
 ```
 
-Migration `0004` adds four tables. It does not change the existing test tables.
-Roll back the application before removing tables. Preserve any intake records;
-do not drop tables with submissions to undo an application deployment.
+Migration `0004` adds four tables. Migration `0005` adds a nullable worker
+`run_id` to Assessment Submissions. Apply migrations before enabling the intake
+worker. Neither migration changes the existing test tables. To roll back the
+application, retain the column and all intake records.
 
 ## Integration tests
 
@@ -80,9 +81,29 @@ without changing saved data or revealing the original receipt.
 Concurrent identical requests create one submission and one Consent Record.
 Only the request that creates the submission dispatches work.
 
-## Follow-up issues
+## Worker dispatch and recovery
 
-The handler accepts an injected dispatch function for integration tests.
-Production submissions remain `pending` until #103 connects the worker and adds
-re-dispatch. A successful retry does not dispatch again, even when the original
-dispatch failed. The pending state preserves that work for re-dispatch.
+The route uses Next.js `after()` to dispatch `assessment-submission` after
+sending the 201 receipt. It sends only the submission ID. Both the route and
+the recovery task use the global key `assessment-submission:<submissionId>`.
+A dispatch failure does not change the receipt or clear the pending state.
+An identical HTTP retry returns the original receipt without another dispatch.
+
+The worker changes `pending` to `handled` and stores its run ID in one update.
+It does not change answers, contact details, consent, or the receipt time, and
+it sends no messages. A repeated run preserves the first handling run ID,
+including after Trigger.dev's idempotency retention window expires.
+
+`redispatch-assessment-submissions` runs every five minutes. It selects pending
+submissions more than one minute old in batches of 100. It advances past failed
+dispatches and tries them again on the next scheduled run. A submitted job stays
+pending until the worker handles it. The task output reports `dispatched` and
+`failed` counts. If `DATABASE_URL` is absent, it reports
+`skipped: intake_not_configured` and does no work.
+
+The intake worker must use the same `DATABASE_URL` as the sending CRM deployment.
+Its Trigger environment must match that deployment's `TRIGGER_SECRET_KEY`.
+The existing staff test tasks keep using `PREVIEW_DATABASE_URL`. The deployment
+workflow still migrates that test database; provisioning and migrating the live
+intake database, setting its worker variables, and approving the first live
+deployment belong to #105.
