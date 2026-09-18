@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { ChevronDown, FlaskConical, Mail, Phone } from "lucide-react";
 import { assessmentVersions } from "@phx/assessment";
 import { Badge } from "@/components/ui/badge";
+import { receivedTime } from "../../format";
 
 export type PersonSummary = {
   id: string;
@@ -23,12 +24,6 @@ export type PersonAssessmentSubmission = {
   receivedAt: string;
   originBrand: string;
 };
-
-const receivedTime = new Intl.DateTimeFormat("en-US", {
-  dateStyle: "medium",
-  timeStyle: "short",
-  timeZone: "America/Phoenix",
-});
 
 type AssessmentDefinition =
   (typeof assessmentVersions)[keyof typeof assessmentVersions];

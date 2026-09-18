@@ -3,14 +3,13 @@ import { beforeEach, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   staff: vi.fn(),
   database: vi.fn(),
-  personRows: vi.fn(),
-  submissionRows: vi.fn(),
+  queries: [] as Array<() => Promise<unknown[]>>,
 }));
 
 vi.mock("./auth", () => ({ requireStaff: mocks.staff }));
 vi.mock("@/db/client", () => ({ database: mocks.database }));
 
-import { getPersonWithAssessmentSubmissions } from "./people";
+import { getPersonWithAssessmentSubmissions, listPeople } from "./people";
 
 const person = {
   id: "20000000-0000-4000-8000-000000000001",
@@ -20,44 +19,69 @@ const person = {
   phone: null,
 };
 
+const submission = {
+  id: "10000000-0000-4000-8000-000000000001",
+  environment: "live",
+  assessmentVersion: "1",
+  answers: { mortgage_goal: "purchase" },
+  reportedScore: 82,
+  actionPlan: "purchase_discussion",
+  receivedAt: new Date("2026-09-18T14:30:00.000Z"),
+  originBrand: "VALoansForVets.com",
+};
+
+const personListRow = {
+  ...person,
+  latestOriginBrand: "VALoansForVets.com",
+  liveSubmissionCount: 2,
+  testSubmissionCount: 1,
+  lastReceivedAt: new Date("2026-09-18T14:30:00.000Z"),
+};
+
+// Every query builder method returns the same chain. Awaiting a chain runs
+// the next queued query, in the order the helper awaits them, so the tests
+// describe results and never the builder calls. Subqueries are never awaited
+// and so never consume a queued result.
+function queueQuery(rows: unknown[]) {
+  const run = vi.fn<() => Promise<unknown[]>>().mockResolvedValue(rows);
+  mocks.queries.push(run);
+  return run;
+}
+
 beforeEach(() => {
   vi.resetAllMocks();
+  mocks.queries.length = 0;
   mocks.staff.mockResolvedValue({
     userId: "staff",
     email: "staff@example.com",
   });
-  mocks.personRows.mockResolvedValue([person]);
-  mocks.submissionRows.mockResolvedValue([
-    {
-      id: "10000000-0000-4000-8000-000000000001",
-      environment: "live",
-      assessmentVersion: "1",
-      answers: { mortgage_goal: "purchase" },
-      reportedScore: 82,
-      actionPlan: "purchase_discussion",
-      receivedAt: new Date("2026-09-18T14:30:00.000Z"),
-      originBrand: "VALoansForVets.com",
-    },
-  ]);
-  let selectCall = 0;
+  const startQuery = () => {
+    const chain: Record<string, unknown> = {
+      then: (
+        resolve: (rows: unknown) => unknown,
+        reject?: (error: unknown) => unknown,
+      ) => {
+        const run = mocks.queries.shift();
+        return (run ? run() : Promise.resolve([])).then(resolve, reject);
+      },
+    };
+    for (const method of [
+      "from",
+      "where",
+      "limit",
+      "innerJoin",
+      "leftJoin",
+      "orderBy",
+      "groupBy",
+      "as",
+    ]) {
+      chain[method] = () => chain;
+    }
+    return chain;
+  };
   mocks.database.mockReturnValue({
-    select: () => {
-      selectCall += 1;
-      if (selectCall === 1) {
-        return {
-          from: () => ({
-            where: () => ({ limit: mocks.personRows }),
-          }),
-        };
-      }
-      return {
-        from: () => ({
-          innerJoin: () => ({
-            where: () => ({ orderBy: mocks.submissionRows }),
-          }),
-        }),
-      };
-    },
+    select: startQuery,
+    selectDistinctOn: startQuery,
   });
 });
 
@@ -79,18 +103,36 @@ it("treats an invalid Person ID as missing after authorization", async () => {
 });
 
 it("returns a Person with submission Origin Brands", async () => {
+  queueQuery([person]);
+  queueQuery([submission]);
+
   await expect(getPersonWithAssessmentSubmissions(person.id)).resolves.toEqual({
     person,
-    submissions: await mocks.submissionRows(),
+    submissions: [submission],
   });
   expect(mocks.staff).toHaveBeenCalledOnce();
 });
 
 it("does not query submissions when the Person does not exist", async () => {
-  mocks.personRows.mockResolvedValue([]);
+  queueQuery([]);
+  const submissionRows = queueQuery([submission]);
 
   await expect(
     getPersonWithAssessmentSubmissions(person.id),
   ).resolves.toBeNull();
-  expect(mocks.submissionRows).not.toHaveBeenCalled();
+  expect(submissionRows).not.toHaveBeenCalled();
+});
+
+it("authorizes before listing People", async () => {
+  mocks.staff.mockRejectedValue(new Error("Denied"));
+
+  await expect(listPeople()).rejects.toThrow("Denied");
+  expect(mocks.database).not.toHaveBeenCalled();
+});
+
+it("lists People with their latest Origin Brand and submission counts", async () => {
+  queueQuery([personListRow]);
+
+  await expect(listPeople()).resolves.toEqual([personListRow]);
+  expect(mocks.staff).toHaveBeenCalledOnce();
 });
