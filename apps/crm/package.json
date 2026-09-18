@@ -22,7 +22,7 @@
     "db:migrate:preview": "node --env-file=.env.local --import tsx scripts/migrate-preview.ts",
     "db:migrate:intake": "tsx scripts/migrate-intake.ts",
     "db:provision:caller": "tsx scripts/provision-intake-caller.ts",
-    "smoke:intake": "tsx scripts/smoke-intake.ts",
+    "smoke:intake": "node --conditions=react-server --import tsx scripts/smoke-intake.ts",
     "test:intake": "vitest run --config vitest.intake.config.ts",
     "db:backup:preview": "node --env-file=.env.local --import tsx scripts/backup-preview.ts"
   },
