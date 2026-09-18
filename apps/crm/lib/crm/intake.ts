@@ -49,7 +49,7 @@ function isUniqueViolation(error: unknown): boolean {
 export function createIntakeHandler(
   dependencies: {
     database?: typeof database;
-    // #103 connects the worker. Until then, committed submissions stay pending.
+    // The HTTP route schedules this work after sending the response.
     dispatch?: (submissionId: string) => Promise<void>;
   } = {},
 ) {

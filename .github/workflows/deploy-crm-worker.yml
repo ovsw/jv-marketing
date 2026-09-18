@@ -11,6 +11,7 @@ on:
       - "apps/crm/db/**"
       - "apps/crm/drizzle/**"
       - "apps/crm/lib/crm/policy.ts"
+      - "apps/crm/lib/crm/assessment-dispatch.ts"
       - "apps/crm/scripts/migrate-preview.ts"
       - "pnpm-lock.yaml"
       - ".github/workflows/deploy-crm-worker.yml"

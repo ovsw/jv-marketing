@@ -3,7 +3,15 @@ import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { migrate } from "drizzle-orm/neon-http/migrator";
 import { eq, inArray } from "drizzle-orm";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { parseSubmission } from "@phx/assessment";
 import { submitAssessment } from "@phx/assessment/client";
 import fixture from "../../../../packages/assessment/test/fixtures/v1-purchase.json";
@@ -16,6 +24,31 @@ import {
 import { createIntakeHandler, hashIntakeSecret } from "./intake";
 import { POST } from "@/app/api/v1/assessment-submissions/route";
 import { intakeTestDatabaseUrl } from "@/test/intake-database";
+
+const worker = vi.hoisted(() => ({
+  after: vi.fn<(callback: () => Promise<void>) => void>(),
+  trigger: vi.fn(),
+  key: vi.fn(),
+  schemaTask: vi.fn(
+    (definition: {
+      run: (
+        payload: { submissionId: string },
+        options: { ctx: { run: { id: string } } },
+      ) => Promise<unknown>;
+    }) => definition,
+  ),
+}));
+vi.mock("next/server", () => ({ after: worker.after }));
+vi.mock("@trigger.dev/sdk", () => ({
+  tasks: { trigger: worker.trigger },
+  idempotencyKeys: { create: worker.key },
+  schemaTask: worker.schemaTask,
+}));
+vi.mock("@/db/client", () => ({
+  database: () => drizzle(neon(intakeTestDatabaseUrl())),
+}));
+import "../../trigger/assessment-submission";
+const runAssessmentSubmission = worker.schemaTask.mock.calls[0][0].run;
 
 // Explicit opt-in: never fall back to either application database variable.
 const db = drizzle(neon(intakeTestDatabaseUrl()));
@@ -50,6 +83,12 @@ function request(body: unknown, secret = liveSecret) {
 const handle = createIntakeHandler({
   database: () => db,
   dispatch: vi.fn(async () => {}),
+});
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  worker.key.mockImplementation(async (value) => value);
+  worker.trigger.mockResolvedValue({ id: "run_assessment" });
 });
 
 beforeAll(async () => {
@@ -88,6 +127,61 @@ afterAll(async () => {
 });
 
 describe("intake route with a real Neon transaction", () => {
+  it("dispatches a saved submission only after the exported route has returned its receipt", async () => {
+    const body = submission();
+    const response = await POST(request(body));
+    expect(response.status).toBe(201);
+    expect(await response.json()).toMatchObject({
+      submissionId: body.submissionId,
+    });
+    expect(worker.trigger).not.toHaveBeenCalled();
+    expect(worker.after).toHaveBeenCalledTimes(1);
+    const [saved] = await db
+      .select()
+      .from(assessmentSubmissions)
+      .where(eq(assessmentSubmissions.id, body.submissionId));
+    expect(saved.dispatchState).toBe("pending");
+
+    await worker.after.mock.calls[0][0]();
+    expect(worker.key).toHaveBeenCalledExactlyOnceWith(
+      `assessment-submission:${body.submissionId}`,
+      { scope: "global" },
+    );
+    expect(worker.trigger).toHaveBeenCalledExactlyOnceWith(
+      "assessment-submission",
+      { submissionId: body.submissionId },
+      { idempotencyKey: `assessment-submission:${body.submissionId}` },
+    );
+    expect((await POST(request(body))).status).toBe(201);
+    expect(worker.after).toHaveBeenCalledTimes(1);
+  });
+
+  it("handles a submission once and preserves its contents and original worker run ID", async () => {
+    const body = submission();
+    expect((await handle(request(body))).status).toBe(201);
+    const [before] = await db
+      .select()
+      .from(assessmentSubmissions)
+      .where(eq(assessmentSubmissions.id, body.submissionId));
+    await runAssessmentSubmission(
+      { submissionId: body.submissionId },
+      { ctx: { run: { id: "run_first" } } },
+    );
+    await runAssessmentSubmission(
+      { submissionId: body.submissionId },
+      { ctx: { run: { id: "run_retry" } } },
+    );
+    const [after] = await db
+      .select()
+      .from(assessmentSubmissions)
+      .where(eq(assessmentSubmissions.id, body.submissionId));
+    expect(after).toEqual({
+      ...before,
+      dispatchState: "handled",
+      runId: "run_first",
+    });
+  });
+
   it("rejects a missing secret at the exported route without database access", async () => {
     const response = await POST(
       new Request("https://crm.example/api/v1/assessment-submissions", {
@@ -543,17 +637,29 @@ describe("intake route with a real Neon transaction", () => {
 
   it("keeps a committed submission pending when worker dispatch fails", async () => {
     const body = submission();
-    const route = createIntakeHandler({
-      database: () => db,
-      dispatch: async () => {
-        throw new Error("Worker offline");
-      },
-    });
-    expect((await route(request(body))).status).toBe(201);
+    worker.trigger.mockRejectedValueOnce(
+      new Error("Private worker credentials"),
+    );
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    const response = await POST(request(body));
+    expect(response.status).toBe(201);
+    const receipt = await response.json();
+    await expect(worker.after.mock.calls[0][0]()).resolves.toBeUndefined();
     const [saved] = await db
       .select()
       .from(assessmentSubmissions)
       .where(eq(assessmentSubmissions.id, body.submissionId));
     expect(saved.dispatchState).toBe("pending");
+    expect(saved.runId).toBeNull();
+    expect(log).toHaveBeenCalledExactlyOnceWith(
+      "Assessment dispatch failed",
+      body.submissionId,
+    );
+    log.mockRestore();
+    const retry = await POST(request(body));
+    expect(retry.status).toBe(201);
+    expect(await retry.json()).toEqual(receipt);
+    expect(worker.after).toHaveBeenCalledTimes(1);
+    expect(worker.trigger).toHaveBeenCalledTimes(1);
   });
 });
