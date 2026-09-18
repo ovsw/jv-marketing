@@ -338,6 +338,10 @@ All environment variables and their descriptions:
 - `RESEND_API_KEY` - your RESEND api key for the newsletter form.
 - `RESEND_AUDIENCE_ID` - your RESEND audience id for the newsletter form to store contacts.
 - `YOUTUBE_API_KEY` - a YouTube Data API v3 key (restrict it to that API in the Google Cloud console). Used at build/revalidate time to fetch video metadata for automatic VideoObject JSON-LD. Optional: when absent, pages render normally without video schema. Remember to add it to the Vercel project settings too.
+- `CRM_INTAKE_URL` and `CRM_INTAKE_SECRET` - the Shared CRM origin and this
+  website's Intake Caller secret for Assessment submissions. Production holds
+  the live secret; Preview holds the test secret. Server-only. See
+  [intake setup](apps/crm/docs/intake.md).
 
 **Studio (`apps/phx-studio/.env.local`):**
 

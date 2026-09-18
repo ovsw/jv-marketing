@@ -26,7 +26,9 @@ environment. It is a test worker using the pinned Neon development branch.
 The workflow deploys it when worker or database files change on `main`.
 
 Required repository secrets are `PREVIEW_DATABASE_URL` and
-`TRIGGER_ACCESS_TOKEN`. See [Trigger setup](trigger-setup.md).
+`TRIGGER_ACCESS_TOKEN`. The optional `DATABASE_URL` secret lets the same
+workflow migrate the live intake database on the Neon `production` branch.
+See [Trigger setup](trigger-setup.md).
 
 ## Release checks
 
@@ -35,7 +37,6 @@ and confirm the worker and website use the same Trigger environment and Neon
 development branch. The test worker is not a production intake or booking
 system.
 
-The Assessment intake route has separate `DATABASE_URL` configuration. See
-[intake setup](intake.md). The staff test flow retains its development database
-guard. Live provisioning and owner approval of the first live deployment remain
-part of #105.
+The Assessment intake route has separate `DATABASE_URL` configuration and its
+own Intake Caller provisioning. See [intake setup](intake.md). The staff test
+flow retains its development database guard.
