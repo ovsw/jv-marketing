@@ -66,8 +66,9 @@ export function UserDashboard() {
 
 ## Hybrid Pattern
 
+`app/profile/page.tsx` (Server Component):
+
 ```tsx
-// Server: fetch initial data
 import { currentUser } from '@clerk/nextjs/server';
 import { ProfileForm } from './ProfileForm';
 
@@ -76,9 +77,13 @@ export default async function ProfilePage() {
   if (!user) return <div>Please sign in</div>;
   return <ProfileForm initialData={{ firstName: user.firstName }} />;
 }
+```
 
-// Client: handle interactions
+`app/profile/ProfileForm.tsx` (Client Component):
+
+```tsx
 'use client';
+
 import { useUser } from '@clerk/nextjs';
 
 export function ProfileForm({ initialData }) {

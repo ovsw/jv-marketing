@@ -33,4 +33,16 @@ describe("envProblems", () => {
       "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY does not look like a Clerk key. Expected pk_test_… or pk_live_… ending in an encoded Frontend API host.",
     ]);
   });
+
+  it("rejects Clerk keys from different environments", () => {
+    expect(
+      envProblems({
+        ...valid,
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
+          "pk_live_" + Buffer.from("clerk.example.com$").toString("base64"),
+      }),
+    ).toEqual([
+      "CLERK_SECRET_KEY and NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY target different Clerk environments.",
+    ]);
+  });
 });

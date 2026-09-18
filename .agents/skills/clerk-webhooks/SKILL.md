@@ -67,7 +67,11 @@ export async function POST(req: NextRequest) {
     const { id, email_addresses, first_name, last_name } = evt.data
     const email = email_addresses[0]?.email_address
     const name = `${first_name ?? ''} ${last_name ?? ''}`.trim()
-    await db.users.create({ data: { clerkId: id, email, name } })
+    await db.users.upsert({
+      where: { clerkId: id },
+      update: { email, name },
+      create: { clerkId: id, email, name },
+    })
   }
 
   if (evt.type === 'user.updated') {
@@ -85,7 +89,11 @@ export async function POST(req: NextRequest) {
     const { organization, public_user_data, role } = evt.data
     const orgId = organization.id
     const userId = public_user_data.user_id
-    await db.teamMembers.create({ data: { orgId, userId, role } })
+    await db.teamMembers.upsert({
+      where: { orgId_userId: { orgId, userId } },
+      update: { role },
+      create: { orgId, userId, role },
+    })
   }
 
   if (evt.type === 'organizationMembership.deleted') {
@@ -107,9 +115,10 @@ Notification-only handlers still verify the signature. Same pattern as the datab
 // app/api/webhooks/route.ts
 import { verifyWebhook } from '@clerk/nextjs/webhooks'
 import { NextRequest } from 'next/server'
-import { Resend } from 'resend'
+import { db } from '@/lib/db'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const slackWebhookUrl = process.env.SLACK_WEBHOOK_URL
+if (!slackWebhookUrl) throw new Error('SLACK_WEBHOOK_URL is required')
 
 export async function POST(req: NextRequest) {
   // Step 1: ALWAYS verify the webhook signature - NEVER skip this
@@ -127,22 +136,19 @@ export async function POST(req: NextRequest) {
     const { id, email_addresses, first_name, last_name } = evt.data
     const email = email_addresses[0]?.email_address
     const name = `${first_name ?? ''} ${last_name ?? ''}`.trim()
+    const deliveryId = req.headers.get('svix-id')
+    if (!deliveryId) return new Response('Missing delivery ID', { status: 400 })
 
-    // Step 4: Call Resend API to send welcome email
-    await resend.emails.send({
-      from: 'noreply@yourdomain.com',
-      to: email,
-      subject: 'Welcome!',
-      html: `<p>Hi ${name}, welcome to our app!</p>`,
-    })
-
-    // Step 5: Post notification to Slack channel
-    await fetch(process.env.SLACK_WEBHOOK_URL!, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        text: `New user signed up: ${name} (${email})`,
-      }),
+    // Step 4: Enqueue the side effects once. deliveryId must have a unique
+    // database constraint so a retry cannot enqueue duplicate notifications.
+    await db.webhookOutbox.upsert({
+      where: { deliveryId },
+      update: {},
+      create: {
+        deliveryId,
+        kind: 'welcome-user',
+        payload: { clerkUserId: id, email, name, slackWebhookUrl },
+      },
     })
   }
 
@@ -150,6 +156,11 @@ export async function POST(req: NextRequest) {
   return new Response('OK', { status: 200 })
 }
 ```
+
+Process `webhookOutbox` with a worker that atomically claims each row. Pass
+`deliveryId` as Resend's idempotency key, record completion before retrying, and
+send the Slack message only from that claimed job. Do not call notification
+providers directly from a replayable webhook handler.
 
 **Also include proxy.ts (Next.js <=15: middleware.ts) to make the route public:**
 ```typescript
@@ -181,8 +192,10 @@ export async function POST(req: NextRequest) {
 
   if (evt.type === 'organization.created') {
     const { id, name } = evt.data
-    await db.workspaces.create({
-      data: { orgId: id, name, createdAt: new Date() },
+    await db.workspaces.upsert({
+      where: { orgId: id },
+      update: { name },
+      create: { orgId: id, name, createdAt: new Date() },
     })
   }
 
@@ -193,13 +206,17 @@ export async function POST(req: NextRequest) {
     const userId = public_user_data.user_id
 
     // Add to team_members table
-    await db.team_members.create({
-      data: { orgId, userId, role },
+    await db.team_members.upsert({
+      where: { orgId_userId: { orgId, userId } },
+      update: { role },
+      create: { orgId, userId, role },
     })
 
     // Create workspace record for new member
-    await db.workspaces.create({
-      data: { orgId, userId, createdAt: new Date() },
+    await db.workspaces.upsert({
+      where: { orgId_userId: { orgId, userId } },
+      update: {},
+      create: { orgId, userId, createdAt: new Date() },
     })
   }
 
@@ -309,7 +326,7 @@ const {
 
 ## Webhook Reliability
 
-**Retries**: Svix retries failed webhooks on a set schedule (see [Svix Retry Schedule](https://docs.svix.com/retries)). Return 2xx to succeed, 4xx/5xx to retry. Use the `svix-id` header as an idempotency key to deduplicate retried events.
+**Retries**: Svix retries failed webhooks on a set schedule (see [Svix Retry Schedule](https://docs.svix.com/retries)). Return 2xx to succeed, 4xx/5xx to retry. Use unique-keyed upserts for database state. For external side effects, store the `svix-id` in a durable inbox or outbox with a unique constraint and send from an atomically claimed job.
 
 **Replay**: Failed webhooks can be replayed from Dashboard.
 

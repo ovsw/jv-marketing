@@ -24,7 +24,7 @@
       "expectations": [
         "Uses POST /v1/organizations to create the organization with name 'Acme Corp'",
         "Uses POST /v1/organizations/{id}/invitations to send the invitation",
-        "Sets the role to admin (or org:admin) in the invitation payload",
+        "Sets the role to org:admin in the invitation payload",
         "Authenticates both API calls using CLERK_SECRET_KEY in the Authorization header",
         "Extracts the organization ID from the first response and uses it in the invitation request"
       ]
@@ -32,11 +32,11 @@
     {
       "id": 3,
       "prompt": "i need to set custom metadata on a user via clerk's backend api. set their plan to 'pro' and onboarded to true",
-      "expected_output": "PATCH /v1/users/{user_id} with public_metadata or private_metadata body, explanation of metadata types and when to use each",
+      "expected_output": "PATCH /v1/users/{user_id}/metadata with public_metadata or private_metadata body, explanation of metadata types and when to use each",
       "scaffold": "nextjs-basic-auth",
       "files": [],
       "expectations": [
-        "Uses PATCH /v1/users/{user_id} endpoint",
+        "Uses PATCH /v1/users/{user_id}/metadata endpoint",
         "Sets the metadata in the correct field: public_metadata, private_metadata, or unsafe_metadata",
         "Explains the difference between metadata types (client-readable vs server-only vs client-writable)",
         "Includes a properly formed JSON body with the plan and onboarded fields",
@@ -60,14 +60,14 @@
     {
       "id": 5,
       "prompt": "i'm updating user metadata to add a 'plan' field but it keeps deleting the existing 'role' field. what am i doing wrong?",
-      "expected_output": "Metadata updates overwrite not merge. Read existing metadata first, spread it, then write back.",
+      "expected_output": "PATCH metadata updates deep-merge. Use updateUserMetadata to preserve existing keys or replaceUserMetadata only for explicit replacement.",
       "scaffold": "nextjs-basic-auth",
       "expectations": [
-        "Explains that updateUser publicMetadata replaces all existing metadata, not merges",
-        "Shows reading the existing user first with getUser(userId)",
-        "Spreads existing metadata before adding new fields ({ ...user.publicMetadata, plan: 'pro' })",
-        "Calls updateUser with the merged metadata object",
-        "Warns that this applies to publicMetadata, privateMetadata, and unsafeMetadata equally"
+        "Explains that PATCH /v1/users/{user_id}/metadata deep-merges supplied metadata",
+        "Uses updateUserMetadata to add the plan field without deleting role",
+        "Explains that replaceUserMetadata or PUT is for explicit replacement",
+        "Does not require a read-before-write spread for a deep merge",
+        "Distinguishes publicMetadata, privateMetadata, and unsafeMetadata"
       ]
     },
     {

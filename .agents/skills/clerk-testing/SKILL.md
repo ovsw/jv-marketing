@@ -51,7 +51,35 @@ Test auth = isolated session state. Each test needs fresh auth context.
 
 ## Framework-Specific
 
-**Playwright**: Use `globalSetup` for auth state
+**Playwright**: Use a dedicated serial setup project. Function-based
+`globalSetup` runs in another process, so values set by `clerkSetup()` do not
+reach test workers.
+
+```ts
+// global.setup.ts
+import { clerkSetup } from '@clerk/testing/playwright'
+import { test as setup } from '@playwright/test'
+
+setup.describe.configure({ mode: 'serial' })
+setup('Clerk setup', async () => {
+  await clerkSetup()
+})
+```
+
+```ts
+// playwright.config.ts
+export default defineConfig({
+  projects: [
+    { name: 'clerk-setup', testMatch: /global\.setup\.ts/ },
+    {
+      name: 'chrome',
+      use: { channel: 'chrome' },
+      dependencies: ['clerk-setup'],
+    },
+  ],
+})
+```
+
 **Cypress**: Add `addClerkCommands({ Cypress, cy })` to support file
 
 ## See Also

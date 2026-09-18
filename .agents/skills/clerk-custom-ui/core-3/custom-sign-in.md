@@ -191,6 +191,10 @@ export default function Page() {
   const { signIn, errors, fetchStatus } = useSignIn()
   const router = useRouter()
 
+  // This fixed phone-code example requires MFA. It does not handle Device
+  // Trust (`needs_client_trust`) or choose dynamically among available factors.
+  // Use the Device Trust flow and factor-selection APIs when those are enabled.
+
   const handleSubmit = async (formData: FormData) => {
     const emailAddress = formData.get('email') as string
     const password = formData.get('password') as string

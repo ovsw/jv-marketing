@@ -41,6 +41,21 @@ export function envProblems(env: Record<string, string | undefined>): string[] {
       problems.push(`${name} does not look like a Clerk key. Expected ${shape}.`);
     }
   }
+  const secretEnvironment = /^sk_(test|live)_/.exec(
+    env.CLERK_SECRET_KEY?.trim().replace(/^["']|["']$/g, "") ?? "",
+  )?.[1];
+  const publishableEnvironment = /^pk_(test|live)_/.exec(
+    env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim().replace(/^["']|["']$/g, "") ?? "",
+  )?.[1];
+  if (
+    secretEnvironment &&
+    publishableEnvironment &&
+    secretEnvironment !== publishableEnvironment
+  ) {
+    problems.push(
+      "CLERK_SECRET_KEY and NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY target different Clerk environments.",
+    );
+  }
   return problems;
 }
 

@@ -26,7 +26,7 @@ test("opens /crm in Chrome without a server error or uncaught browser error", as
 
   expect(response, "navigation to /crm produced no document response").not.toBeNull();
   expect(response!.status(), `document response for ${withoutQuery(response!.url())}`).toBeLessThan(
-    500,
+    400,
   );
 
   // Signed out, the CRM either lands on the Clerk sign-in page or renders

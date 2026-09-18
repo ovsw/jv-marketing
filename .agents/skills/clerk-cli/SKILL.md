@@ -174,7 +174,12 @@ In human mode, `clerk api` with no arguments opens an interactive request builde
 
 For instance config, prefer the dedicated `clerk config ...` commands over raw Platform API `/config` paths. They handle dry-run, diffing, and confirmation more cleanly than the raw endpoint form.
 
-**Always `--dry-run` a mutation before running it for real.** Then re-run without `--dry-run` (add `--yes` if you're sure). In agent mode, interactive confirmation is bypassed, so `--dry-run` is the only safety net for destructive calls.
+**Always `--dry-run` a mutation before running it for real.** For every
+destructive mutation, show the planned target and effect, then obtain explicit
+user confirmation before re-running without `--dry-run`, including for
+development targets. In agent mode, interactive CLI confirmation is bypassed;
+the user's recorded approval is the required safety gate. `unlink` also
+requires `--yes`.
 
 **JSON bodies must be valid JSON.** The CLI validates and rejects malformed payloads.
 

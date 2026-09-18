@@ -118,7 +118,7 @@ When tunneling via ngrok in dev, allow the host in `nuxt.config.ts`:
 export default defineNuxtConfig({
   vite: {
     server: {
-      allowedHosts: ['fawn-two-nominally.ngrok-free.app'],
+      allowedHosts: ['<your-tunnel>.ngrok-free.app'],
     },
   },
 })
@@ -164,7 +164,7 @@ When tunneling via ngrok in dev, allow the host in `vite.config.ts`:
 ```typescript
 export default defineConfig({
   server: {
-    allowedHosts: ['fawn-two-nominally.ngrok-free.app'],
+    allowedHosts: ['<your-tunnel>.ngrok-free.app'],
   },
 })
 ```
@@ -202,7 +202,7 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   server: {
-    allowedHosts: ['fawn-two-nominally.ngrok-free.app'],
+    allowedHosts: ['<your-tunnel>.ngrok-free.app'],
   },
 })
 ```

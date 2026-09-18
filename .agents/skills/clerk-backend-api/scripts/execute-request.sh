@@ -14,12 +14,29 @@ set -euo pipefail
 # Walk up from $PWD to find .env/.env.local (mirrors Clerk CLI behavior).
 # Stops at the first directory that provides CLERK_SECRET_KEY.
 _dir="$PWD"
+_load_env_file() {
+  local _line _name _value
+  while IFS= read -r _line || [[ -n "$_line" ]]; do
+    [[ "$_line" =~ ^[[:space:]]*# ]] && continue
+    [[ "$_line" == *=* ]] || continue
+    _name="${_line%%=*}"
+    _name="${_name//[[:space:]]/}"
+    case "$_name" in
+      CLERK_SECRET_KEY|CLERK_REST_API_URL|CLERK_BAPI_SCOPES)
+        _value="${_line#*=}"
+        if [[ "$_value" == \"*\" ]] || [[ "$_value" == \'*\' ]]; then
+          _value="${_value:1:${#_value}-2}"
+        fi
+        export "$_name=$_value"
+        ;;
+    esac
+  done < "$1"
+}
+
 while true; do
   for _envfile in "$_dir/.env" "$_dir/.env.local"; do
     if [[ -f "$_envfile" ]]; then
-      set -a
-      source "$_envfile"
-      set +a
+      _load_env_file "$_envfile"
     fi
   done
   [[ -n "${CLERK_SECRET_KEY:-}" ]] && break
@@ -28,6 +45,7 @@ while true; do
   _dir="$_parent"
 done
 unset _dir _parent _envfile
+unset -f _load_env_file
 
 # Parse --admin flag
 ADMIN=false
@@ -43,20 +61,29 @@ BODY="${3:-}"
 METHOD_UPPER=$(echo "$METHOD" | tr '[:lower:]' '[:upper:]')
 SCOPES="${CLERK_BAPI_SCOPES:-}"
 
+has_scope() {
+  local _scope
+  while IFS= read -r _scope; do
+    _scope="${_scope//[[:space:]]/}"
+    [[ "$_scope" == "$1" ]] && return 0
+  done < <(printf '%s' "$SCOPES" | tr ',' '\n')
+  return 1
+}
+
 # Scope check
 if [[ "$ADMIN" == false ]]; then
   case "$METHOD_UPPER" in
     GET)
       ;; # always allowed
     POST|PUT|PATCH)
-      if [[ "$SCOPES" != *"write"* ]]; then
+      if ! has_scope write; then
         echo "ERROR: $METHOD_UPPER requests require CLERK_BAPI_SCOPES=\"write\" or --admin flag." >&2
         echo "Current CLERK_BAPI_SCOPES: \"$SCOPES\"" >&2
         exit 1
       fi
       ;;
     DELETE)
-      if [[ "$SCOPES" != *"write"* ]] || [[ "$SCOPES" != *"delete"* ]]; then
+      if ! has_scope write || ! has_scope delete; then
         echo "ERROR: DELETE requests require CLERK_BAPI_SCOPES=\"write,delete\" or --admin flag." >&2
         echo "Current CLERK_BAPI_SCOPES: \"$SCOPES\"" >&2
         exit 1
