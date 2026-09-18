@@ -13,6 +13,25 @@ export function isStaffEmail(
   return verified && emailList(allowlist).includes(email.toLowerCase());
 }
 
+export function databaseUrl() {
+  const value = process.env.DATABASE_URL;
+  if (!value) throw new Error("DATABASE_URL is required for intake.");
+  // Never include the supplied URL in errors: it contains database credentials.
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error("DATABASE_URL must be a PostgreSQL URL with TLS.");
+  }
+  if (
+    !["postgres:", "postgresql:"].includes(url.protocol) ||
+    !["require", "verify-full"].includes(url.searchParams.get("sslmode") ?? "")
+  ) {
+    throw new Error("DATABASE_URL must be a PostgreSQL URL with TLS.");
+  }
+  return value;
+}
+
 export function previewDatabaseUrl() {
   const value = process.env.PREVIEW_DATABASE_URL;
   if (!value) throw new Error("PREVIEW_DATABASE_URL is required.");

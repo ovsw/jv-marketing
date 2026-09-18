@@ -14,7 +14,7 @@ vi.mock("./auth", () => ({ requireStaff: mocks.staff }));
 vi.mock("./policy", () => ({
   isTestRecipient: (email: string) => email === "ovi@ovswebsites.com",
 }));
-vi.mock("@/db/client", () => ({ database: mocks.database }));
+vi.mock("@/db/client", () => ({ previewDatabase: mocks.database }));
 vi.mock("@trigger.dev/sdk", () => ({
   tasks: { trigger: mocks.trigger },
   idempotencyKeys: { create: mocks.key },

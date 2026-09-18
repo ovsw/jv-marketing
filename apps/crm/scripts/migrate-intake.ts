@@ -1,5 +1,5 @@
 import { migrate } from "drizzle-orm/neon-http/migrator";
-import { previewDatabase as database } from "../db/client";
+import { database } from "../db/client";
 
 await migrate(database(), { migrationsFolder: "./drizzle" });
-console.log("Development database migrations complete.");
+console.log("Intake database migrations complete.");

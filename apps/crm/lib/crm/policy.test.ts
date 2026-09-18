@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   canRetryEmail,
+  databaseUrl,
   isStaffEmail,
   previewDatabaseUrl,
   isTestRecipient,
@@ -9,6 +10,24 @@ import {
 afterEach(() => vi.unstubAllEnvs());
 
 describe("CRM trust boundaries", () => {
+  it("requires a separate TLS database URL for intake", () => {
+    vi.stubEnv("DATABASE_URL", "");
+    expect(databaseUrl).toThrow("DATABASE_URL is required");
+    for (const url of [
+      "not-a-url",
+      "https://example.com?sslmode=require",
+      "postgresql://user:password@host/db",
+    ]) {
+      vi.stubEnv("DATABASE_URL", url);
+      expect(databaseUrl).toThrow("PostgreSQL URL with TLS");
+    }
+    const production =
+      "postgresql://user:password@production.example/db?sslmode=require";
+    vi.stubEnv("DATABASE_URL", production);
+    expect(databaseUrl()).toBe(production);
+    vi.stubEnv("PREVIEW_DATABASE_URL", production);
+    expect(previewDatabaseUrl).toThrow("verified development database");
+  });
   it("denies unverified, unlisted, and empty-list access", () => {
     expect(
       isStaffEmail("ovi@ovswebsites.com", false, "ovi@ovswebsites.com"),

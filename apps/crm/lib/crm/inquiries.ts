@@ -1,7 +1,7 @@
 import "server-only";
 import { tasks, idempotencyKeys } from "@trigger.dev/sdk";
 import { desc, eq, inArray } from "drizzle-orm";
-import { database } from "@/db/client";
+import { previewDatabase as database } from "@/db/client";
 import { simulatedSms, testInquiries } from "@/db/schema";
 import type { testInquiry } from "@/trigger/test-inquiry";
 import { requireStaff } from "./auth";

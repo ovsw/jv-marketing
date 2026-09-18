@@ -1,7 +1,7 @@
 import { schemaTask } from "@trigger.dev/sdk";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { database } from "../db/client";
+import { previewDatabase as database } from "../db/client";
 import { simulatedSms, testInquiries } from "../db/schema";
 import { canRetryEmail, isTestRecipient } from "../lib/crm/policy";
 import { SMS_MESSAGE } from "./simulate-sms";
