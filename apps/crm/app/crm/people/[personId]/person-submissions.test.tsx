@@ -105,7 +105,8 @@ it("hides test submissions by default and reveals them with the labeled control"
   expect(screen.getByText("Test", { selector: "div" })).toBeInTheDocument();
 });
 
-it("keeps raw values and says labels are unavailable for an unknown Assessment Version", () => {
+it("keeps raw values and says labels are unavailable for an unknown Assessment Version", async () => {
+  const user = userEvent.setup();
   render(
     <PersonSubmissions
       person={person}
@@ -120,7 +121,11 @@ it("keeps raw values and says labels are unavailable for an unknown Assessment V
     "Answer labels are unavailable for Assessment Version 99.",
   );
   expect(submission).toHaveTextContent("future_plan");
-  expect(
-    within(submission).queryByText("Show 3 answers", { selector: "summary" }),
-  ).not.toBeInTheDocument();
+
+  await user.click(
+    within(submission).getByText("Show 3 answers", { selector: "summary" }),
+  );
+  expect(within(submission).getByText("mortgage_goal")).toBeVisible();
+  expect(within(submission).getByText("purchase")).toBeVisible();
+  expect(within(submission).getByText("from_250k_to_500k")).toBeVisible();
 });

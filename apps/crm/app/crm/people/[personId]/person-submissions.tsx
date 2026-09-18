@@ -41,9 +41,24 @@ function assessmentFor(version: string): AssessmentDefinition | undefined {
     : undefined;
 }
 
+/** Answers as raw values when no released version can label them. */
+function rawAnswerRows(submission: PersonAssessmentSubmission) {
+  return Object.entries(submission.answers).map(([id, value]) => ({
+    id,
+    question: id,
+    answer: rawValue(value),
+  }));
+}
+
+function rawValue(value: unknown): string {
+  if (Array.isArray(value)) return value.map(rawValue).join(", ");
+  if (typeof value === "string") return value;
+  return JSON.stringify(value) ?? "Not available";
+}
+
 function answerRows(submission: PersonAssessmentSubmission) {
   const assessment = assessmentFor(submission.assessmentVersion);
-  if (!assessment) return null;
+  if (!assessment) return rawAnswerRows(submission);
 
   return Object.entries(submission.answers).flatMap(([id, value]) => {
     if (!Object.hasOwn(assessment.questions, id)) return [];
@@ -205,6 +220,7 @@ export function PersonSubmissions({
           <ol className="divide-y">
             {visibleSubmissions.map((submission) => {
               const answers = answerRows(submission);
+              const labeled = assessmentFor(submission.assessmentVersion) !== undefined;
               return (
                 <li
                   key={submission.id}
@@ -255,7 +271,13 @@ export function PersonSubmissions({
                       </dl>
                     </div>
 
-                    {answers ? (
+                    {labeled ? null : (
+                      <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                        Answer labels are unavailable for Assessment Version{" "}
+                        {submission.assessmentVersion}. Raw answers are shown.
+                      </p>
+                    )}
+                    {answers.length > 0 ? (
                       <details className="group rounded-md border bg-muted/20 open:bg-muted/10">
                         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium focus-ring [&::-webkit-details-marker]:hidden">
                           Show {answers.length} answers
@@ -280,12 +302,7 @@ export function PersonSubmissions({
                           ))}
                         </dl>
                       </details>
-                    ) : (
-                      <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-                        Answer labels are unavailable for Assessment Version {" "}
-                        {submission.assessmentVersion}.
-                      </p>
-                    )}
+                    ) : null}
                   </article>
                 </li>
               );
