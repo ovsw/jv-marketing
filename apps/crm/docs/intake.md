@@ -74,8 +74,9 @@ errors use the shared contract's stable codes and paths.
 
 A retry from the same Intake Caller with the same submission ID and validated
 body returns 201 with the original ID and receipt time. Object key order does
-not matter; array order is preserved. A changed body or different caller
-returns 409 without changing saved data or revealing the original receipt.
+not change request identity. Changing array order, such as reordering consent
+channels, changes the body. A changed body or different caller returns 409
+without changing saved data or revealing the original receipt.
 Concurrent identical requests create one submission and one Consent Record.
 Only the request that creates the submission dispatches work.
 
