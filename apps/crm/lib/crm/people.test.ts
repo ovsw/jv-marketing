@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("./auth", () => ({ requireStaff: mocks.staff }));
-vi.mock("@/db/client", () => ({ previewDatabase: mocks.database }));
+vi.mock("@/db/client", () => ({ database: mocks.database }));
 
 import { getPersonWithAssessmentSubmissions } from "./people";
 
