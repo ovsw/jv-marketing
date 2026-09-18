@@ -1,11 +1,11 @@
 ---
-status: proposed
+status: accepted
 ---
 
 # The website quiz renders the Assessment with React Hook Form
 
-On 2026-09-18 the marketing consultant proposed, for the owner's approval on
-issue #95, that the PHXHomeLoan.com Assessment form runs on React Hook Form,
+On 2026-09-18 the owner accepted, on issue #95, that the PHXHomeLoan.com
+Assessment form runs on React Hook Form,
 which the website already installs, and validates each step with the
 per-question Zod schemas that the shared Assessment package exports. No new
 form dependency is added. The shared package owns the questions, the branch
@@ -46,8 +46,9 @@ and reports errors next to the right input.
 
 ## Consequences
 
-- The website bumps react-hook-form to 7.87.0 or later before the quiz
-  ships. That release fixes module resolution under a `react-server`
-  condition in Next.js builds.
+- The website runs react-hook-form 7.87.0 or later. That release fixes
+  module resolution under a `react-server` condition in Next.js builds.
+- The shared package exports `validateDraft`, the step-aware check both
+  websites use, so the resolver in each website stays a thin adapter.
 - Quiz placement, step layout, auto-advance, and keyboard behaviour are not
   decided here. They belong to issue #94.
