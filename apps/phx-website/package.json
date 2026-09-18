@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "test:smoke": "playwright test e2e/footer.spec.ts"
+    "test:smoke": "playwright test e2e/footer.spec.ts e2e/assessment.spec.ts"
   },
   "dependencies": {
     "@fontsource/source-serif-4": "^5.3.0",
