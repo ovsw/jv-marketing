@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 // Clerk puts handshake tokens in the query string. Keep them out of test logs.
 function withoutQuery(url: string) {
