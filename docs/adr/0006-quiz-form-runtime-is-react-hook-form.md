@@ -34,11 +34,11 @@ and reports errors next to the right input.
   lose input. The shared package strips hidden answers at submit time and
   its scoring ignores them, so retained answers are harmless.
 - Moving to the next step validates only the questions on the current step.
-  A small resolver reads the names React Hook Form asks it to check, looks up
-  each question's schema from the shared package for the current draft, and
-  returns the package's field codes as the error type. No static
-  whole-form schema exists, because the visible questions depend on earlier
-  answers, so the generic Zod resolver adapter is not used for the quiz.
+  A small resolver passes the names React Hook Form asks it to check to the
+  shared package's `validateDraft`, which parses the whole draft schema,
+  keeps only the errors under those names, and returns the package's field
+  codes as the error type. The generic Zod resolver adapter is not used,
+  because it cannot limit a check to one step's fields.
 - The final step parses the full submission with the shared package on the
   client, shows the Readiness Score and Action Plan at once, and sends the
   submission through a server action that calls the shared typed client.

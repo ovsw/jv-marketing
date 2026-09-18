@@ -53,6 +53,17 @@ describe("validateDraft", () => {
     expect(codes(validateDraft(draft, ["consent.channels"]))).toEqual([]);
   });
 
+  it("still reports the SMS phone rule when an unrelated field is missing", () => {
+    const draft: AssessmentDraft = {
+      answers: { mortgage_goal: "purchase" },
+      contact: { email: "vet@example.com" },
+      consent: { channels: ["sms"] },
+    };
+    expect(codes(validateDraft(draft, ["contact.phone"]))).toEqual([
+      "contact.phone:sms_requires_phone",
+    ]);
+  });
+
   it("ignores answers to questions hidden by the current path", () => {
     const draft: AssessmentDraft = {
       ...complete,

@@ -150,26 +150,16 @@ export type AssessmentDraft = {
   contact: Partial<Record<keyof Contact, unknown>>;
   consent: { channels?: unknown };
 };
-const draftSchema = z
-  .object({
-    answers: assessmentV1.answersSchema,
-    contact: contactSchema,
-    consent: z.object({ channels: consentSchema.shape.channels }),
-  })
-  .check((ctx) => {
-    if (
-      ctx.value.consent.channels.includes("sms") &&
-      !ctx.value.contact.phone
-    ) {
-      ctx.issues.push({
-        code: "custom",
-        input: ctx.value.contact.phone,
-        path: ["contact", "phone"],
-        message: "Phone is required for SMS consent.",
-        params: { fieldCode: "sms_requires_phone" },
-      });
-    }
-  });
+const draftSchema = z.object({
+  answers: assessmentV1.answersSchema,
+  contact: contactSchema,
+  consent: z.object({ channels: consentSchema.shape.channels }),
+});
+const smsRequiresPhone: FieldError = {
+  path: ["contact", "phone"],
+  code: "sms_requires_phone",
+  message: "Phone is required for SMS consent.",
+};
 
 /**
  * Field errors for a draft, with the same paths and codes the intake route
@@ -181,8 +171,21 @@ export function validateDraft(
   names?: readonly string[],
 ): FieldError[] {
   const parsed = draftSchema.safeParse(draft);
-  if (parsed.success) return [];
-  const errors = toFieldErrors(parsed.error.issues, draft);
+  const errors = parsed.success
+    ? []
+    : toFieldErrors(parsed.error.issues, draft);
+  // Checked on the raw draft: Zod skips object-level checks when any sibling
+  // field has a type error, and a missing name must not hide this rule.
+  const channels = draft.consent.channels;
+  const phone = draft.contact.phone;
+  if (
+    Array.isArray(channels) &&
+    channels.includes("sms") &&
+    !(typeof phone === "string" && phone.trim()) &&
+    !errors.some((error) => error.path.join(".") === "contact.phone")
+  ) {
+    errors.push(smsRequiresPhone);
+  }
   if (!names) return errors;
   return errors.filter((error) => {
     const path = error.path.join(".");
