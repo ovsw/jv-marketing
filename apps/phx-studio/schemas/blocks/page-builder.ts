@@ -26,6 +26,7 @@ export const generalPageBuilderBlockTypes = [
   "benefitCards",
   "comparisonTable",
   "loanRequirements",
+  "assessmentQuiz",
 ] as const;
 
 // Retain the established export for existing consumers of the general inventory.

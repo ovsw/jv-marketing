@@ -1,4 +1,5 @@
 import { advisorCtaQuery } from "./advisor-cta";
+import { assessmentQuizQuery } from "./assessment-quiz";
 import { awardCtaQuery } from "./award-cta";
 import { benefitCardsQuery } from "./benefit-cards";
 import { comparisonTableQuery } from "./comparison-table";
@@ -55,6 +56,7 @@ export const pageBuilderQuery = `
     ${ctaBannerQuery},
     ${benefitCardsQuery},
     ${comparisonTableQuery},
-    ${loanRequirementsQuery}
+    ${loanRequirementsQuery},
+    ${assessmentQuizQuery}
   }
 `;

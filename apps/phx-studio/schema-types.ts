@@ -60,6 +60,7 @@ import ctaBanner from "./schemas/blocks/cta-banner";
 import benefitCards from "./schemas/blocks/benefit-cards";
 import comparisonTable from "./schemas/blocks/comparison-table";
 import loanRequirements from "./schemas/blocks/loan-requirements";
+import assessmentQuiz from "./schemas/blocks/assessment-quiz";
 
 export const schemaTypes = [
   // documents
@@ -121,4 +122,5 @@ export const schemaTypes = [
   benefitCards,
   comparisonTable,
   loanRequirements,
+  assessmentQuiz,
 ];
