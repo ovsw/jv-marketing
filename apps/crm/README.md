@@ -23,10 +23,15 @@ pnpm dev:crm
 Copy `apps/crm/.env.local.example` to `apps/crm/.env.local` and fill in
 the development values before starting the app.
 
+`pnpm dev:crm` starts two processes together: the Next.js app on port 3200
+and the Trigger.dev worker. They start at the same time; the app can be
+ready a few seconds before the worker connects. Test inquiries finish only
+while the worker is connected. The worker needs a one-time
+`pnpm trigger:login`. To run the worker on its own, use `pnpm trigger:dev`.
+
 Open <http://localhost:3200/crm> and sign in with a verified address in the
-`CRM_STAFF_EMAILS` allowlist. In a second terminal run `pnpm trigger:login`
-and then `pnpm trigger:dev`. The worker reads `apps/crm/.env.local`;
-restart it after changing a value. Keep secrets server-only and do not commit
+`CRM_STAFF_EMAILS` allowlist. Both processes read `apps/crm/.env.local`;
+restart after changing a value. Keep secrets server-only and do not commit
 the file.
 
 Useful checks are `pnpm typecheck`, `pnpm lint`, `pnpm test`,
