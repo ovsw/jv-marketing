@@ -29,6 +29,9 @@ jobs:
     name: Migrate test database and deploy worker
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      # Empty until live intake is provisioned; the live migration step skips then.
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
       - name: Check out repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
@@ -42,6 +45,12 @@ jobs:
         run: pnpm --dir apps/crm exec node --import tsx scripts/migrate-preview.ts
         env:
           PREVIEW_DATABASE_URL: ${{ secrets.PREVIEW_DATABASE_URL }}
+
+      # The live intake database is migrated only once its secret exists, so the
+      # workflow keeps working before live intake is provisioned.
+      - name: Migrate the live intake database
+        if: ${{ env.DATABASE_URL != '' }}
+        run: pnpm --dir apps/crm exec node --import tsx scripts/migrate-intake.ts
 
       - name: Deploy the worker to Trigger.dev prod
         run: pnpm --dir apps/crm exec trigger deploy --env prod

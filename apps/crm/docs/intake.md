@@ -20,11 +20,10 @@ after the transaction commits. It does not update existing submissions.
 ## Database configuration
 
 `DATABASE_URL` controls intake. Require TLS in the URL. In Vercel, Production
-must use the named Neon `production` branch and Preview must use `development`.
-Caller provisioning and the first live deployment belong to #105. Do not set a
-live secret in Preview. The staff test inquiry flow and its worker continue to
-use `PREVIEW_DATABASE_URL`, which rejects any host other than the verified
-development endpoint.
+must use the named Neon `production` branch (`br-proud-wind-ayketun5`) and
+Preview must use `development`. Do not set a live secret in Preview. The staff
+test inquiry flow and its worker continue to use `PREVIEW_DATABASE_URL`, which
+rejects any host other than the verified development endpoint.
 
 With `DATABASE_URL` supplied securely in the process environment, run from the
 repository root:
@@ -37,6 +36,42 @@ Migration `0004` adds four tables. Migration `0005` adds a nullable worker
 `run_id` to Assessment Submissions. Apply migrations before enabling the intake
 worker. Neither migration changes the existing test tables. To roll back the
 application, retain the column and all intake records.
+
+The deploy workflow also runs these migrations against the live database on
+`main` pushes when the `DATABASE_URL` repository secret is set.
+
+## Provisioning Intake Callers
+
+Each Web Property has one `live` caller and one `test` caller in the production
+database. Live websites use the live secret. Preview deployments use the test
+secret against the same CRM URL, so their submissions are stored as `test` and
+never mix with live ones. Generate each secret in the shell, store its hash with
+the script, and pipe the same value into Vercel. Nothing prints the secret.
+
+```sh
+INTAKE_CALLER_SECRET="$(openssl rand -hex 32)"
+DATABASE_URL=... INTAKE_CALLER_SECRET="$INTAKE_CALLER_SECRET" \
+  pnpm --filter crm db:provision:caller \
+  --web-property phxhomeloan.com --brand "PHX Home Loan" --environment live
+printf '%s' "$INTAKE_CALLER_SECRET" |
+  vercel env add CRM_INTAKE_SECRET production --sensitive --cwd apps/phx-website
+```
+
+Use `--environment test` with brand `PHX Preview` for the Preview scope. The
+script prints only the caller ID. Running it again with the same secret finds
+the existing caller instead of creating a second one.
+
+The website reads `CRM_INTAKE_URL` (`https://valoansforvets-crm.vercel.app`)
+and `CRM_INTAKE_SECRET`. To prove a caller end to end, send one fixture
+submission through the shared client:
+
+```sh
+CRM_INTAKE_URL=https://valoansforvets-crm.vercel.app CRM_INTAKE_SECRET=... \
+  SMOKE_EMAIL=you@example.com pnpm --filter crm smoke:intake
+```
+
+It prints the status and submission ID. Use a staff address so the Person it
+creates is clearly not a veteran.
 
 ## Integration tests
 
@@ -104,6 +139,7 @@ pending until the worker handles it. The task output reports `dispatched` and
 The intake worker must use the same `DATABASE_URL` as the sending CRM deployment.
 Its Trigger environment must match that deployment's `TRIGGER_SECRET_KEY`.
 The existing staff test tasks keep using `PREVIEW_DATABASE_URL`. The deployment
-workflow still migrates that test database; provisioning and migrating the live
-intake database, setting its worker variables, and approving the first live
-deployment belong to #105.
+workflow migrates that test database and, when the `DATABASE_URL` repository
+secret is set, the live intake database. Set `DATABASE_URL` in the Trigger `prod`
+environment through the Trigger.dev REST API or dashboard so the worker and the
+CRM deployment read the same database.
