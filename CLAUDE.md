@@ -9,6 +9,26 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## Dev Server rules
 Before starting a development server, inspect the required port. If the exact server you need is already running there, reuse it.
 
+## Branches and deployments
+
+`develop` is the integration branch. `main` is the live website and live CRM.
+See "Branches and deployments" in `README.md` for the full policy.
+
+- Start every branch from `develop`. Open every pull request against
+  `develop`. Never open a pull request against `main` for feature, fix, or
+  content work. The Release gate rejects a pull request into `main` from any
+  branch except `develop`.
+- A push to `develop` deploys to the persistent Preview at
+  https://phxhomeloancom-dev.vercel.app with the Preview environment: Sanity
+  dataset `development`, the test Intake Caller, and the preview CRM database.
+  Use that URL, or a pull request's own preview URL, for every check.
+- A merge into `main` goes live on https://phxhomeloan.com at once. Only the
+  owner merges `develop` into `main`, and only after the reviewed content has
+  been promoted to the `production` dataset. Never merge, push, or deploy to
+  `main` yourself, and never run `vercel deploy --prod`.
+- Do not write to the `production` Sanity dataset. Create and edit content in
+  `development`; promotion to `production` is the owner's release step.
+
 ## Shell discipline and reporting observations
 
 The Bash tool's working directory **persists between calls**. A `cd` in one

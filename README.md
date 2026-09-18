@@ -138,6 +138,32 @@ The schema for the `Page` document type lives at `apps/phx-studio/schemas/docume
 
 This project includes components aligned with the [Schema UI](https://schemaui.com/docs/components) library. Visit [Schema UI Docs](https://schemaui.com/docs/how-to-use) to learn how to add new components.
 
+### Branches and deployments
+
+Two long-lived branches exist. Feature branches are short-lived.
+
+| Branch    | Deploys to                                    | Vercel environment | Sanity dataset | CRM database and Intake Caller |
+| --------- | --------------------------------------------- | ------------------ | -------------- | ------------------------------ |
+| `develop` | https://phxhomeloancom-dev.vercel.app          | Preview            | `development`  | preview database, test caller  |
+| `main`    | https://phxhomeloan.com (and the CRM project)  | Production         | `production`   | live database, live caller     |
+
+- `develop` is the GitHub default branch and the integration branch. Every
+  feature, fix, docs, and content branch starts from `develop` and opens its
+  pull request against `develop`. Pull request previews use the Preview
+  environment, so they read `development` and talk to the test Intake Caller.
+- Both branches are protected: pull requests only, no force pushes, and the
+  "Release gate" check must pass. The gate also rejects any pull request into
+  `main` whose head branch is not `develop`.
+- A release is one pull request from `develop` into `main`, opened and merged
+  by the owner. Before merging, promote the reviewed content from the
+  `development` dataset to `production`, because the live site reads
+  `production` and a code change that depends on new content would otherwise
+  ship without it.
+- The Trigger.dev worker for the CRM deploys from `main` only, through
+  `deploy-crm-worker.yml`. Preview and test flows use the preview database.
+- The persistent Preview domain is assigned to the `develop` git branch in the
+  Vercel project settings. If the branch is renamed, reassign the domain.
+
 ### Deploying your application
 
 #### 1. Configure CORS settings
@@ -171,7 +197,7 @@ After the first deploy, set `SANITY_STUDIO_APP_ID` from the CLI output so later 
 
 #### 4. Production Studio releases
 
-The GitHub `release-gate.yml` workflow checks `main` and pull requests. It does not deploy Studio.
+The GitHub `release-gate.yml` workflow checks `develop`, `main`, and pull requests. It does not deploy Studio.
 Deploy Studio from `apps/phx-studio/` with the reviewed dataset and the live preview origin:
 
 ```bash
@@ -271,7 +297,7 @@ deployment and uses that app's protection bypass secret
 The release gate sets `TURBO_SCM_BASE` and `TURBO_SCM_HEAD`, then runs each task with `--affected`. To inspect the same package selection locally, set those revisions and run, for example:
 
 ```bash
-TURBO_SCM_BASE=origin/main TURBO_SCM_HEAD=HEAD pnpm turbo run test --affected
+TURBO_SCM_BASE=origin/develop TURBO_SCM_HEAD=HEAD pnpm turbo run test --affected
 ```
 
 Each task's environment inputs are declared in `turbo.json`. Update that declaration when a task starts reading another environment variable.
