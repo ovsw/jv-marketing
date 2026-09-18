@@ -75,38 +75,63 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup
 
-      - name: Check whether the PHX website changed
+      # Each package's smoke test runs against its own Vercel project, so the
+      # packages are selected here and run one at a time with their own URL.
+      - name: Check which packages with a smoke test changed
         id: affected
         env:
           TURBO_SCM_BASE: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
           TURBO_SCM_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           affected=$(pnpm turbo run test:smoke --affected --dry=json)
-          if echo "$affected" | jq -e '.tasks | any(.package == "frontend")' >/dev/null; then
-            echo "website=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "website=false" >> "$GITHUB_OUTPUT"
-          fi
+          for package in frontend crm; do
+            if echo "$affected" | jq -e --arg p "$package" '.tasks | any(.package == $p)' >/dev/null; then
+              echo "$package=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "$package=false" >> "$GITHUB_OUTPUT"
+            fi
+          done
 
-      - name: Wait for the Vercel deployment
-        id: deployment
-        if: steps.affected.outputs.website == 'true'
+      - name: Wait for the PHX website Vercel deployment
+        id: website-deployment
+        if: steps.affected.outputs.frontend == 'true'
         env:
           GITHUB_TOKEN: ${{ github.token }}
           DEPLOY_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           DEPLOY_ENVIRONMENT: ${{ github.event_name == 'pull_request' && 'Preview – phxhomeloancom-2026' || 'Production – phxhomeloancom-2026' }}
+          DEPLOY_STATUS_CONTEXT: Vercel – phxhomeloancom-2026
         run: |
           url=$(node scripts/wait-for-vercel-deployment.mjs)
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
-      - name: Run browser smoke tests
-        if: steps.affected.outputs.website == 'true'
+      - name: Run PHX website browser smoke tests
+        if: steps.affected.outputs.frontend == 'true'
         env:
-          PLAYWRIGHT_BASE_URL: ${{ steps.deployment.outputs.url }}
+          PLAYWRIGHT_BASE_URL: ${{ steps.website-deployment.outputs.url }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-          TURBO_SCM_BASE: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
-          TURBO_SCM_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: pnpm turbo run test:smoke --affected
+        run: pnpm turbo run test:smoke --filter=frontend
+
+      - name: Wait for the CRM Vercel deployment
+        id: crm-deployment
+        if: steps.affected.outputs.crm == 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          DEPLOY_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          DEPLOY_ENVIRONMENT: ${{ github.event_name == 'pull_request' && 'Preview – valoansforvets-crm' || 'Production – valoansforvets-crm' }}
+          DEPLOY_STATUS_CONTEXT: Vercel – valoansforvets-crm
+        run: |
+          url=$(node scripts/wait-for-vercel-deployment.mjs)
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      # Navigates /crm in real Google Chrome. Clerk's browser handshake only
+      # runs in a browser, so an invalid CLERK_SECRET_KEY on the deployment
+      # fails here and nowhere else in the gate.
+      - name: Run CRM browser smoke tests
+        if: steps.affected.outputs.crm == 'true'
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ steps.crm-deployment.outputs.url }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.CRM_VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: pnpm turbo run test:smoke --filter=crm
 
   release-gate:
     # Single stable check name for branch protection. Runs even when a lane

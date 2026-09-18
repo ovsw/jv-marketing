@@ -37,6 +37,13 @@ exactly what makes handing off write access dangerous.
 ## Testing
 - Prefer focused functional/accessibility checks and one-time visual inspection;
 - DO NOT create or maintain screenshot baselines unless explicitly requested.
+- The full test suite is `pnpm test` **and** `pnpm test:smoke`. `pnpm test`
+  runs unit and Node tests only. `pnpm test:smoke` runs the real-browser smoke
+  tests (headless Google Chrome) that the required "Release gate" also runs.
+  Never report "full suite passed" after `pnpm test` alone.
+- HTTP-only checks (`curl`, Playwright's `request` fixture) do not run Clerk's
+  browser handshake. A CRM route can return 500 in a browser while every
+  HTTP-only test passes. Use the `page` fixture for CRM smoke coverage.
 
 ## Commits
 

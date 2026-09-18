@@ -29,8 +29,14 @@ import {
 } from "@/components/ui/sidebar";
 export function CrmShell({
   children,
+  currentPage = "Inquiries",
+  skipLabel = "Skip to inquiries",
+  inquiriesActive = true,
 }: {
   children: ReactNode;
+  currentPage?: string;
+  skipLabel?: string;
+  inquiriesActive?: boolean;
 }) {
   return (
     <SidebarProvider>
@@ -38,7 +44,7 @@ export function CrmShell({
         href="#workspace"
         className="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:bg-white focus:p-4"
       >
-        Skip to inquiries
+        {skipLabel}
       </a>
       <Sidebar>
         <SidebarHeader>
@@ -66,8 +72,11 @@ export function CrmShell({
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive>
-                    <Link href="/crm" aria-current="page">
+                  <SidebarMenuButton asChild isActive={inquiriesActive}>
+                    <Link
+                      href="/crm"
+                      aria-current={inquiriesActive ? "page" : undefined}
+                    >
                       <Inbox />
                       Inquiries
                     </Link>
@@ -90,7 +99,7 @@ export function CrmShell({
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
-                <BreadcrumbPage>Inquiries</BreadcrumbPage>
+                <BreadcrumbPage>{currentPage}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>

@@ -8,7 +8,10 @@ create or remove hosted data.
    `pnpm install --frozen-lockfile`.
 3. Copy `apps/crm/.env.local.example` to `apps/crm/.env.local` and provide
    development credentials and the pinned Neon development connection.
-4. Run `pnpm typecheck`, `pnpm lint`, `pnpm test`, and `pnpm build`.
+4. Run `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm test:smoke`, and
+   `pnpm build`. The full test suite is `pnpm test` and `pnpm test:smoke`
+   together; `pnpm test:smoke` needs Google Chrome and a real Clerk
+   development secret key, not the `[SENSITIVE]` placeholder.
 5. Run `pnpm trigger:login` and complete the CLI login.
 6. Run `pnpm dev:crm` and `pnpm trigger:dev` in separate terminals.
 7. Open `/crm`, confirm anonymous users redirect to sign-in, and sign in with
