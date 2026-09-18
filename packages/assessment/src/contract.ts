@@ -92,14 +92,8 @@ export const problemSchema = z.object({
 export type IntakeProblem = z.output<typeof problemSchema>;
 
 /** Stable application codes, independent of Zod's messages and issue names. */
-export function parseSubmission(
-  input: unknown,
-):
-  | { success: true; data: AssessmentSubmission }
-  | { success: false; errors: FieldError[] } {
-  const parsed = submissionSchema.safeParse(input);
-  if (parsed.success) return { success: true, data: parsed.data };
-  const errors = parsed.error.issues.flatMap((issue): FieldError[] => {
+function toFieldErrors(issues: z.core.$ZodIssue[], input: unknown) {
+  return issues.flatMap((issue): FieldError[] => {
     const path = issue.path.map((part) =>
       typeof part === "number" ? part : String(part),
     );
@@ -135,5 +129,66 @@ export function parseSubmission(
       },
     ];
   });
-  return { success: false, errors };
+}
+
+export function parseSubmission(
+  input: unknown,
+):
+  | { success: true; data: AssessmentSubmission }
+  | { success: false; errors: FieldError[] } {
+  const parsed = submissionSchema.safeParse(input);
+  if (parsed.success) return { success: true, data: parsed.data };
+  return { success: false, errors: toFieldErrors(parsed.error.issues, input) };
+}
+
+/**
+ * What a website form holds while a visitor works through the Assessment.
+ * Promise text, timestamp, score, and IDs are added when the submission is built.
+ */
+export type AssessmentDraft = {
+  answers: Readonly<Record<string, unknown>>;
+  contact: Partial<Record<keyof Contact, unknown>>;
+  consent: { channels?: unknown };
+};
+const draftSchema = z.object({
+  answers: assessmentV1.answersSchema,
+  contact: contactSchema,
+  consent: z.object({ channels: consentSchema.shape.channels }),
+});
+const smsRequiresPhone: FieldError = {
+  path: ["contact", "phone"],
+  code: "sms_requires_phone",
+  message: "Phone is required for SMS consent.",
+};
+
+/**
+ * Field errors for a draft, with the same paths and codes the intake route
+ * returns. Pass `names` (dot paths such as `answers.credit_range`) to check
+ * one step at a time; omit it to check the whole draft before submitting.
+ */
+export function validateDraft(
+  draft: AssessmentDraft,
+  names?: readonly string[],
+): FieldError[] {
+  const parsed = draftSchema.safeParse(draft);
+  const errors = parsed.success
+    ? []
+    : toFieldErrors(parsed.error.issues, draft);
+  // Checked on the raw draft: Zod skips object-level checks when any sibling
+  // field has a type error, and a missing name must not hide this rule.
+  const channels = draft.consent.channels;
+  const phone = draft.contact.phone;
+  if (
+    Array.isArray(channels) &&
+    channels.includes("sms") &&
+    !(typeof phone === "string" && phone.trim()) &&
+    !errors.some((error) => error.path.join(".") === "contact.phone")
+  ) {
+    errors.push(smsRequiresPhone);
+  }
+  if (!names) return errors;
+  return errors.filter((error) => {
+    const path = error.path.join(".");
+    return names.some((name) => path === name || path.startsWith(`${name}.`));
+  });
 }
