@@ -79,7 +79,7 @@ describe("AssessmentQuizClient navigation", () => {
   it("opens on the first question with progress, Back disabled, and Next", () => {
     setup();
     expect(heading("What would you like to do?")).toBeInTheDocument();
-    expect(screen.getByText("Question 1 of 1")).toBeInTheDocument();
+    expect(screen.getByText("Question 1 of 19")).toBeInTheDocument();
     expect(back()).toBeDisabled();
     expect(next()).toBeEnabled();
   });

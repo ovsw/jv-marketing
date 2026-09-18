@@ -10,7 +10,7 @@ test("drives the purchase path by keyboard, keeps answers on Back, path switch, 
 
   const heading = page.getByRole("heading", { name: "What would you like to do?" });
   await expect(heading).toBeVisible();
-  await expect(page.getByText("Question 1 of 1")).toBeVisible();
+  await expect(page.getByText("Question 1 of 19")).toBeVisible();
 
   // Keyboard selection never advances; Next does.
   const purchase = page.getByRole("radio", { name: /Buy a Home/ });

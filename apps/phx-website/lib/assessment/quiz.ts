@@ -39,6 +39,19 @@ export function quizSteps(answers: Readonly<Record<string, unknown>>): StepId[] 
   return [...currentAssessment.visibleQuestionIds(answers), "contact"];
 }
 
+/**
+ * The steps the visitor should expect. Before a path is chosen only the first
+ * question is visible, which would read "Question 1 of 1", so this previews
+ * the purchase path until the visitor picks one.
+ */
+export function expectedQuizSteps(
+  answers: Readonly<Record<string, unknown>>,
+): StepId[] {
+  return hasAnswer(answers.mortgage_goal)
+    ? quizSteps(answers)
+    : quizSteps({ ...answers, mortgage_goal: "purchase" });
+}
+
 export function hasAnswer(value: unknown): boolean {
   if (value === undefined || value === null) return false;
   if (typeof value === "string") return value.trim().length > 0;

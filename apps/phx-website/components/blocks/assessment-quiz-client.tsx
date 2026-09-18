@@ -26,6 +26,7 @@ import {
   firstUnansweredStep,
   hasAnswer,
   loadDraft,
+  expectedQuizSteps,
   quizSteps,
   saveDraft,
   stepFieldNames,
@@ -171,6 +172,7 @@ export default function AssessmentQuizClient({
   const id = useId();
 
   const steps = quizSteps(answers);
+  const expectedSteps = expectedQuizSteps(answers);
   const currentStep = steps.includes(step) ? step : firstUnansweredStep(answers);
   const stepIndex = steps.indexOf(currentStep);
 
@@ -313,10 +315,10 @@ export default function AssessmentQuizClient({
     }
   };
 
-  const questionCount = steps.length - 1;
+  const questionCount = expectedSteps.length - 1;
   const progressLabel =
     currentStep === "contact"
-      ? `Last step of ${steps.length}`
+      ? `Last step of ${expectedSteps.length}`
       : `Question ${stepIndex + 1} of ${questionCount}`;
   const Heading = title ? "h3" : "h2";
 
@@ -347,7 +349,7 @@ export default function AssessmentQuizClient({
             >
               <div
                 aria-label="Assessment progress"
-                aria-valuemax={steps.length}
+                aria-valuemax={expectedSteps.length}
                 aria-valuemin={1}
                 aria-valuenow={stepIndex + 1}
                 className="mb-6 h-1.5 w-full overflow-hidden rounded-full bg-border"
@@ -355,7 +357,9 @@ export default function AssessmentQuizClient({
               >
                 <div
                   className="h-full rounded-full bg-primary transition-[width] motion-base"
-                  style={{ width: `${((stepIndex + 1) / steps.length) * 100}%` }}
+                  style={{
+                    width: `${((stepIndex + 1) / expectedSteps.length) * 100}%`,
+                  }}
                 />
               </div>
               <div aria-atomic="true" aria-live="polite">
