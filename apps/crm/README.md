@@ -29,8 +29,14 @@ and then `pnpm trigger:dev`. The worker reads `apps/crm/.env.local`;
 restart it after changing a value. Keep secrets server-only and do not commit
 the file.
 
-Useful checks are `pnpm typecheck`, `pnpm lint`, `pnpm test`, and
-`pnpm build`.
+Useful checks are `pnpm typecheck`, `pnpm lint`, `pnpm test`,
+`pnpm test:smoke`, and `pnpm build`. The full test suite is `pnpm test` and
+`pnpm test:smoke` together: `pnpm test` covers unit and Node tests only, and
+`pnpm test:smoke` opens `/crm` in headless Google Chrome so that Clerk's
+browser handshake really runs. `pnpm check:env` (run automatically before the
+smoke test and `pnpm dev`) rejects a missing, malformed, or `[SENSITIVE]`
+Clerk key with a clear message. `vercel env pull` writes `[SENSITIVE]` for
+Sensitive variables, so paste the Clerk development secret key by hand.
 
 ## Services
 

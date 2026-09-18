@@ -1,6 +1,9 @@
 import { defineConfig } from "@playwright/test";
 
+// CI points the smoke test at the Vercel deployment for the commit instead of
+// rebuilding; locally Playwright still builds and serves the app itself.
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3200";
+const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -10,16 +13,26 @@ export default defineConfig({
   reporter: "list",
   use: {
     baseURL,
+    // Real Google Chrome. Clerk's browser handshake only runs during a
+    // browser navigation, so the smoke gate must not fall back to an HTTP client.
     channel: "chrome",
+    headless: true,
     trace: "off",
+    screenshot: "off",
+    video: "off",
+    extraHTTPHeaders: bypassSecret
+      ? { "x-vercel-protection-bypass": bypassSecret, "x-vercel-set-bypass-cookie": "true" }
+      : undefined,
   },
-  webServer: {
-    command: process.env.PLAYWRIGHT_REUSE_BUILD
-      ? "pnpm start --port 3200"
-      : "pnpm build && pnpm start --port 3200",
-    url: "http://localhost:3200",
-    reuseExistingServer:
-      !process.env.CI && !process.env.PLAYWRIGHT_REUSE_BUILD,
-    timeout: 180_000,
-  },
+  webServer: process.env.PLAYWRIGHT_BASE_URL
+    ? undefined
+    : {
+        // check:env fails fast on placeholder credentials before the build.
+        command: process.env.PLAYWRIGHT_REUSE_BUILD
+          ? "pnpm check:env && pnpm start --port 3200"
+          : "pnpm check:env && pnpm build && pnpm start --port 3200",
+        url: baseURL,
+        reuseExistingServer: !process.env.CI && !process.env.PLAYWRIGHT_REUSE_BUILD,
+        timeout: 180_000,
+      },
 });

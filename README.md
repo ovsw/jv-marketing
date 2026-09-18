@@ -249,7 +249,24 @@ pnpm build
 pnpm lint
 pnpm typecheck
 pnpm test
+pnpm test:smoke
 ```
+
+The full test suite is `pnpm test` **and** `pnpm test:smoke`. `pnpm test` runs
+only unit and Node tests. `pnpm test:smoke` runs the real-browser smoke tests in
+headless Google Chrome (the PHX website footer and the CRM `/crm` route). The
+required GitHub "Release gate" runs both, so a result reported after
+`pnpm test` alone is not a full-suite result.
+
+Locally, `pnpm test:smoke` builds and serves each app itself. The CRM smoke test
+first runs `pnpm --dir apps/crm check:env`, which fails fast when
+`CLERK_SECRET_KEY` or `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is missing, malformed,
+or the `[SENSITIVE]` placeholder that `vercel env pull` writes for Sensitive
+variables. Set `PLAYWRIGHT_BASE_URL` to run the smoke tests against a
+deployment instead. In CI the smoke lane waits for each app's own Vercel
+deployment and uses that app's protection bypass secret
+(`VERCEL_AUTOMATION_BYPASS_SECRET` for the website,
+`CRM_VERCEL_AUTOMATION_BYPASS_SECRET` for the CRM).
 
 The release gate sets `TURBO_SCM_BASE` and `TURBO_SCM_HEAD`, then runs each task with `--affected`. To inspect the same package selection locally, set those revisions and run, for example:
 
