@@ -59,13 +59,29 @@ The suite applies migrations, creates random caller secrets and fixture rows,
 invokes the HTTP handler in process, and removes only its own rows. It checks
 caller authentication, environment and consent attribution, receipt timing,
 Person reuse, concurrent submissions, rollback, and pending state after worker
-failure. Normal `pnpm --filter crm test` does not connect to Neon.
+failure. It also checks validation errors, identical retries, conflicting
+requests, and receipt isolation between callers. Normal `pnpm --filter crm test`
+does not connect to Neon.
+
+## Validation and retries
+
+Missing or unknown caller secrets return the same 401 problem response.
+Invalid submissions return 400 with an RFC 9457 `application/problem+json`
+body. Each entry in `errors` has a `path`, `code`, and `message`. Invalid JSON
+uses `invalid_json`; an incorrect content type uses `invalid_content_type`.
+Both use an empty path because the error applies to the whole body. Field
+errors use the shared contract's stable codes and paths.
+
+A retry from the same Intake Caller with the same submission ID and validated
+body returns 201 with the original ID and receipt time. Object key order does
+not matter; array order is preserved. A changed body or different caller
+returns 409 without changing saved data or revealing the original receipt.
+Concurrent identical requests create one submission and one Consent Record.
+Only the request that creates the submission dispatches work.
 
 ## Follow-up issues
 
 The handler accepts an injected dispatch function for integration tests.
 Production submissions remain `pending` until #103 connects the worker and adds
-re-dispatch. #102 adds identical-request replay and the full error-case suite.
-For now, a repeated submission ID returns 409 and does not change saved data.
-The stored request hash uses the validated request with object keys sorted
-recursively; array order is preserved.
+re-dispatch. A successful retry does not dispatch again, even when the original
+dispatch failed. The pending state preserves that work for re-dispatch.

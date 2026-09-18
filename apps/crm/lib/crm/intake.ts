@@ -1,6 +1,6 @@
 import "server-only";
 import { createHash, randomUUID } from "node:crypto";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { parseSubmission, type FieldError } from "@phx/assessment";
 import { database } from "@/db/client";
 import {
@@ -79,18 +79,31 @@ export function createIntakeHandler(
         request.headers.get("content-type")?.split(";")[0].trim() !==
         "application/json"
       ) {
-        return problem(400, "A JSON submission is required");
+        return problem(400, "A JSON submission is required", [
+          {
+            path: [],
+            code: "invalid_content_type",
+            message: "Send the submission as application/json.",
+          },
+        ]);
       }
       let input: unknown;
       try {
         input = await request.json();
       } catch {
-        return problem(400, "Invalid JSON");
+        return problem(400, "Invalid JSON", [
+          {
+            path: [],
+            code: "invalid_json",
+            message: "Send a valid JSON body.",
+          },
+        ]);
       }
       const parsed = parseSubmission(input);
       if (!parsed.success)
         return problem(400, "Invalid Assessment Submission", parsed.errors);
       const submission = parsed.data;
+      const requestHash = hashIntakeSecret(canonicalJson(submission));
       const email = submission.contact.email.toLowerCase();
       const state = submission.answers.property_state;
       if (!state)
@@ -105,49 +118,72 @@ export function createIntakeHandler(
       // Neon HTTP batches run as one transaction. The second statement sees the
       // winning Person insert, including when another request inserts it first.
       // No conflict path updates an existing Person's contact details.
-      const [, receipts] = await db.batch([
-        db
-          .insert(people)
-          .values({
-            id: randomUUID(),
-            email,
-            firstName: submission.contact.firstName,
-            lastName: submission.contact.lastName,
-            phone: submission.contact.phone,
-          })
-          .onConflictDoNothing({ target: people.email }),
-        db
-          .insert(assessmentSubmissions)
-          .values({
-            id: submission.submissionId,
-            personId: sql`(select ${people.id} from ${people} where ${people.email} = ${email})`,
-            intakeCallerId: caller.id,
+      const { receipt, inserted } = await db
+        .batch([
+          db
+            .insert(people)
+            .values({
+              id: randomUUID(),
+              email,
+              firstName: submission.contact.firstName,
+              lastName: submission.contact.lastName,
+              phone: submission.contact.phone,
+            })
+            .onConflictDoNothing({ target: people.email }),
+          db
+            .insert(assessmentSubmissions)
+            .values({
+              id: submission.submissionId,
+              personId: sql`(select ${people.id} from ${people} where ${people.email} = ${email})`,
+              intakeCallerId: caller.id,
+              environment: caller.environment,
+              assessmentVersion: submission.assessmentVersion,
+              contact: submission.contact,
+              answers: submission.answers,
+              reportedScore: submission.reportedScore,
+              actionPlan: submission.actionPlan,
+              requestHash,
+              mortgageGoal: submission.answers.mortgage_goal,
+              state,
+            })
+            .returning({
+              submissionId: assessmentSubmissions.id,
+              receivedAt: assessmentSubmissions.receivedAt,
+            }),
+          db.insert(consentRecords).values({
+            submissionId: submission.submissionId,
+            promiseText: submission.consent.promiseText,
+            channels: submission.consent.channels,
+            consentedAt: new Date(submission.consent.timestamp),
+            brand: caller.brand,
             environment: caller.environment,
             assessmentVersion: submission.assessmentVersion,
-            contact: submission.contact,
-            answers: submission.answers,
-            reportedScore: submission.reportedScore,
-            actionPlan: submission.actionPlan,
-            requestHash: hashIntakeSecret(canonicalJson(submission)),
-            mortgageGoal: submission.answers.mortgage_goal,
-            state,
-          })
-          .returning({
-            submissionId: assessmentSubmissions.id,
-            receivedAt: assessmentSubmissions.receivedAt,
           }),
-        db.insert(consentRecords).values({
-          submissionId: submission.submissionId,
-          promiseText: submission.consent.promiseText,
-          channels: submission.consent.channels,
-          consentedAt: new Date(submission.consent.timestamp),
-          brand: caller.brand,
-          environment: caller.environment,
-          assessmentVersion: submission.assessmentVersion,
-        }),
-      ]);
-      const receipt = receipts[0];
-      if (dependencies.dispatch) {
+        ])
+        .then(([, receipts]) => ({ receipt: receipts[0], inserted: true }))
+        .catch(async (error: unknown) => {
+          if (!isUniqueViolation(error)) throw error;
+          // The failed transaction has rolled back. A competing insert has
+          // committed before its unique constraint can reject this request.
+          // Only the original caller can replay the stored receipt.
+          const [receipt] = await db
+            .select({
+              submissionId: assessmentSubmissions.id,
+              receivedAt: assessmentSubmissions.receivedAt,
+            })
+            .from(assessmentSubmissions)
+            .where(
+              and(
+                eq(assessmentSubmissions.id, submission.submissionId),
+                eq(assessmentSubmissions.intakeCallerId, caller.id),
+                eq(assessmentSubmissions.requestHash, requestHash),
+              ),
+            )
+            .limit(1);
+          if (!receipt) throw error;
+          return { receipt, inserted: false };
+        });
+      if (inserted && dependencies.dispatch) {
         try {
           await dependencies.dispatch(receipt.submissionId);
         } catch {
