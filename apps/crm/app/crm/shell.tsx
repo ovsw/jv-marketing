@@ -2,7 +2,7 @@
 // Shadcnblocks sidebar1. Navigation points only to implemented destinations.
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Inbox, Shield } from "lucide-react";
+import { Inbox, Shield, Users } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -27,17 +27,21 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+export type CrmNav = "inquiries" | "people";
+
 export function CrmShell({
   children,
   currentPage = "Inquiries",
   skipLabel = "Skip to inquiries",
-  inquiriesActive = true,
+  activeNav = "inquiries",
 }: {
   children: ReactNode;
   currentPage?: string;
   skipLabel?: string;
-  inquiriesActive?: boolean;
+  activeNav?: CrmNav | null;
 }) {
+  const inquiriesActive = activeNav === "inquiries";
+  const peopleActive = activeNav === "people";
   return (
     <SidebarProvider>
       <a
@@ -79,6 +83,17 @@ export function CrmShell({
                     >
                       <Inbox />
                       Inquiries
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={peopleActive}>
+                    <Link
+                      href="/crm/people"
+                      aria-current={peopleActive ? "page" : undefined}
+                    >
+                      <Users />
+                      People
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

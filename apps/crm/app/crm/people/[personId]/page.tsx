@@ -47,7 +47,7 @@ async function PersonContent({
     <CrmShell
       currentPage={personName}
       skipLabel="Skip to Person details"
-      inquiriesActive={false}
+      activeNav="people"
     >
       <PersonSubmissions
         person={record.person}
