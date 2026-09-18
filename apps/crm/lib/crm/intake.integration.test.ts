@@ -111,14 +111,134 @@ describe("intake route with a real Neon transaction", () => {
     expect(await response.text()).not.toContain("private database credentials");
   });
 
+  it.each([
+    {
+      name: "malformed JSON",
+      contentType: "application/json",
+      body: "{",
+      code: "invalid_json",
+    },
+    {
+      name: "non-JSON content",
+      contentType: "text/plain",
+      body: "{}",
+      code: "invalid_content_type",
+    },
+  ])(
+    "returns a stable body error for $name",
+    async ({ contentType, body, code }) => {
+      const response = await handle(
+        new Request("https://crm.example/api/v1/assessment-submissions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${liveSecret}`,
+            "Content-Type": contentType,
+          },
+          body,
+        }),
+      );
+      expect(response.status).toBe(400);
+      expect(response.headers.get("content-type")).toContain(
+        "application/problem+json",
+      );
+      expect(response.headers.get("cache-control")).toBe("no-store");
+      expect(await response.json()).toMatchObject({
+        type: "about:blank",
+        status: 400,
+        errors: [{ path: [], code, message: expect.any(String) }],
+      });
+    },
+  );
+
   it("rejects unknown secrets and browser requests without CORS headers", async () => {
     const body = submission();
     const response = await handle(request(body, "unknown"));
     expect(response.status).toBe(401);
+    const missing = request(body);
+    missing.headers.delete("authorization");
+    const missingResponse = await handle(missing);
+    expect(missingResponse.status).toBe(401);
+    expect(await response.json()).toEqual(await missingResponse.json());
     expect(response.headers.has("access-control-allow-origin")).toBe(false);
     const browser = request(body);
     browser.headers.set("origin", "https://website.example");
     expect((await handle(browser)).status).toBe(401);
+    expect(
+      await db
+        .select()
+        .from(people)
+        .where(eq(people.email, body.contact.email)),
+    ).toHaveLength(0);
+  });
+
+  it.each([
+    { field: "email", code: "required" },
+    { field: "firstName", code: "required" },
+    { field: "lastName", code: "required" },
+  ])(
+    "reports missing contact.$field without saving a submission",
+    async ({ field, code }) => {
+      const body = submission();
+      const contact = Object.fromEntries(
+        Object.entries(body.contact).filter(([key]) => key !== field),
+      );
+      const response = await handle(request({ ...body, contact }));
+      expect(response.status).toBe(400);
+      expect(response.headers.get("content-type")).toContain(
+        "application/problem+json",
+      );
+      expect(await response.json()).toMatchObject({
+        status: 400,
+        errors: [
+          { path: ["contact", field], code, message: expect.any(String) },
+        ],
+      });
+      expect(
+        await db
+          .select()
+          .from(assessmentSubmissions)
+          .where(eq(assessmentSubmissions.id, body.submissionId)),
+      ).toHaveLength(0);
+    },
+  );
+
+  it("reports SMS consent without a phone and an unsupported Assessment Version", async () => {
+    const body = submission();
+    const contact = {
+      email: body.contact.email,
+      firstName: body.contact.firstName,
+      lastName: body.contact.lastName,
+    };
+    const sms = await handle(
+      request({
+        ...body,
+        contact,
+        consent: { ...body.consent, channels: ["sms"] },
+      }),
+    );
+    expect(sms.status).toBe(400);
+    expect(await sms.json()).toMatchObject({
+      errors: [
+        {
+          path: ["contact", "phone"],
+          code: "sms_requires_phone",
+          message: expect.any(String),
+        },
+      ],
+    });
+    const version = await handle(
+      request({ ...body, assessmentVersion: "unknown" }),
+    );
+    expect(version.status).toBe(400);
+    expect(await version.json()).toMatchObject({
+      errors: [
+        {
+          path: ["assessmentVersion"],
+          code: "unsupported_version",
+          message: expect.any(String),
+        },
+      ],
+    });
     expect(
       await db
         .select()
@@ -265,17 +385,160 @@ describe("intake route with a real Neon transaction", () => {
     ).toHaveLength(1);
   });
 
+  it("returns the original receipt for identical retries without repeating dispatch or consent", async () => {
+    const body = submission();
+    const dispatch = vi.fn(async () => {});
+    const route = createIntakeHandler({ database: () => db, dispatch });
+    const first = await route(request(body));
+    expect(first.status).toBe(201);
+    const receipt = await first.json();
+    // JSON object key order does not change the request's identity.
+    const retry = await route(
+      request({
+        ...body,
+        contact: Object.fromEntries(Object.entries(body.contact).reverse()),
+        answers: Object.fromEntries(Object.entries(body.answers).reverse()),
+      }),
+    );
+    expect(retry.status).toBe(201);
+    expect(await retry.json()).toEqual(receipt);
+    expect(retry.headers.get("cache-control")).toBe("no-store");
+    expect(dispatch).toHaveBeenCalledExactlyOnceWith(body.submissionId);
+    expect(
+      await db
+        .select()
+        .from(consentRecords)
+        .where(eq(consentRecords.submissionId, body.submissionId)),
+    ).toHaveLength(1);
+  });
+
   it("rolls back a new Person if a later insert fails", async () => {
     const first = submission();
     expect((await handle(request(first))).status).toBe(201);
     const duplicate = { ...submission(), submissionId: first.submissionId };
-    expect((await handle(request(duplicate))).status).toBe(409);
+    const before = await db
+      .select()
+      .from(assessmentSubmissions)
+      .where(eq(assessmentSubmissions.id, first.submissionId));
+    const conflict = await handle(request(duplicate));
+    expect(conflict.status).toBe(409);
+    expect(conflict.headers.get("content-type")).toContain(
+      "application/problem+json",
+    );
+    expect(await conflict.json()).toEqual({
+      type: "about:blank",
+      status: 409,
+      title: "Submission ID already exists",
+    });
+    expect(
+      await db
+        .select()
+        .from(assessmentSubmissions)
+        .where(eq(assessmentSubmissions.id, first.submissionId)),
+    ).toEqual(before);
     expect(
       await db
         .select()
         .from(people)
         .where(eq(people.email, duplicate.contact.email)),
     ).toHaveLength(0);
+  });
+
+  it("returns one receipt for concurrent identical requests and dispatches once", async () => {
+    const body = submission();
+    const dispatch = vi.fn(async () => {});
+    const route = createIntakeHandler({ database: () => db, dispatch });
+    const responses = await Promise.all(
+      Array.from({ length: 3 }, () => route(request(body))),
+    );
+    expect(responses.map((response) => response.status)).toEqual([
+      201, 201, 201,
+    ]);
+    const receipts = await Promise.all(
+      responses.map((response) => response.json()),
+    );
+    expect(receipts[1]).toEqual(receipts[0]);
+    expect(receipts[2]).toEqual(receipts[0]);
+    expect(dispatch).toHaveBeenCalledExactlyOnceWith(body.submissionId);
+    expect(
+      await db
+        .select()
+        .from(assessmentSubmissions)
+        .where(eq(assessmentSubmissions.id, body.submissionId)),
+    ).toHaveLength(1);
+    expect(
+      await db
+        .select()
+        .from(consentRecords)
+        .where(eq(consentRecords.submissionId, body.submissionId)),
+    ).toHaveLength(1);
+    expect(
+      await db
+        .select()
+        .from(people)
+        .where(eq(people.email, body.contact.email)),
+    ).toHaveLength(1);
+  });
+
+  it("does not replay another Intake Caller's receipt", async () => {
+    const body = submission();
+    expect((await handle(request(body))).status).toBe(201);
+    const response = await handle(request(body, testSecret));
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({
+      type: "about:blank",
+      status: 409,
+      title: "Submission ID already exists",
+    });
+    const [saved] = await db
+      .select()
+      .from(assessmentSubmissions)
+      .where(eq(assessmentSubmissions.id, body.submissionId));
+    expect(saved.intakeCallerId).toBe(liveId);
+    expect(saved.environment).toBe("live");
+  });
+
+  it("keeps the winning body when different requests race for one submission ID", async () => {
+    const first = submission();
+    const second = { ...submission(), submissionId: first.submissionId };
+    const bodies = [first, second];
+    const responses = await Promise.all(
+      bodies.map((body) => handle(request(body))),
+    );
+    expect(responses.map((response) => response.status).sort()).toEqual([
+      201, 409,
+    ]);
+    const winner =
+      bodies[responses.findIndex((response) => response.status === 201)];
+    const loser =
+      bodies[responses.findIndex((response) => response.status === 409)];
+    const [saved] = await db
+      .select()
+      .from(assessmentSubmissions)
+      .where(eq(assessmentSubmissions.id, first.submissionId));
+    expect(saved.contact).toEqual(winner.contact);
+    expect(
+      await db
+        .select()
+        .from(people)
+        .where(eq(people.email, loser.contact.email)),
+    ).toHaveLength(0);
+    expect((await handle(request(winner))).status).toBe(201);
+    expect((await handle(request(loser))).status).toBe(409);
+  });
+
+  it("treats a changed consent channel order as a different body", async () => {
+    const body = submission();
+    body.contact.phone = "555-0100";
+    body.consent.channels = ["email", "sms"];
+    expect((await handle(request(body))).status).toBe(201);
+    const response = await handle(
+      request({
+        ...body,
+        consent: { ...body.consent, channels: ["sms", "email"] },
+      }),
+    );
+    expect(response.status).toBe(409);
   });
 
   it("keeps a committed submission pending when worker dispatch fails", async () => {
