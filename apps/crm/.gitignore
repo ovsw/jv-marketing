@@ -51,3 +51,6 @@ next-env.d.ts
 .codex/config.toml
 /.worktree-ports.json
 /.worktree-ports.json.*.tmp
+
+# Local Trigger.dev dev worker state
+.trigger/

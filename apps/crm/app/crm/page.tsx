@@ -52,6 +52,7 @@ async function CrmContent() {
             lastError,
             updatedAt,
             sms,
+            workflow,
           }) => ({
             id,
             recipient,
@@ -61,6 +62,7 @@ async function CrmContent() {
             smsStatus,
             lastError,
             updatedAt: updatedAt.toISOString(),
+            workflow,
             sms: sms && {
               recipient: sms.recipient,
               message: sms.message,

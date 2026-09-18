@@ -23,6 +23,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import type { Workflow } from "@/lib/crm/workflow";
 import { DeleteForm } from "./delete-form";
 import { RefreshButton } from "./refresh-button";
 import { TestForm } from "./test-form";
@@ -36,30 +37,38 @@ export type InquiryRow = {
   smsStatus: string;
   lastError: string | null;
   updatedAt: string;
+  workflow: Workflow;
   sms: { recipient: string; message: string; simulatedAt: string } | null;
 };
 
-function Status({ status }: { status: string }) {
+// The step names one point in the workflow: saved, dispatched, queued,
+// running, email sent, complete, or failed. It never means only "saved".
+function StepBadge({ workflow }: { workflow: Workflow }) {
   return (
     <Badge
       variant="outline"
       className={
-        status === "complete"
+        workflow.state === "complete"
           ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-          : status === "failed"
+          : workflow.state === "failed"
             ? "border-red-200 bg-red-50 text-red-800"
-            : "bg-muted text-muted-foreground"
+            : workflow.warning
+              ? "border-amber-200 bg-amber-50 text-amber-900"
+              : "bg-muted text-muted-foreground"
       }
     >
       <span className="mr-1.5 size-1.5 rounded-full bg-current" />
-      {status === "complete"
-        ? "Complete"
-        : status === "failed"
-          ? "Failed"
-          : status === "pending"
-            ? "Pending"
-            : status}
+      {workflow.label}
     </Badge>
+  );
+}
+
+function StepWarning({ workflow }: { workflow: Workflow }) {
+  if (!workflow.warning) return null;
+  return (
+    <p role="status" className="mt-2 max-w-xs text-xs leading-5 text-amber-900">
+      {workflow.warning}
+    </p>
   );
 }
 
@@ -94,19 +103,34 @@ function InquiryDetails({ inquiry }: { inquiry: InquiryRow }) {
           </p>
         </SheetHeader>
         <div className="space-y-7 p-6">
-          <Status status={inquiry.jobStatus} />
-          {inquiry.jobStatus === "failed" && inquiry.lastError && (
+          <div>
+            <StepBadge workflow={inquiry.workflow} />
+            <p className="mt-2 text-sm text-muted-foreground">
+              {inquiry.workflow.detail}
+            </p>
+          </div>
+          {inquiry.workflow.state === "failed" ? (
             <div
               role="alert"
               className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800"
             >
-              <h3 className="font-semibold">Last error</h3>
-              <p className="mt-1">{inquiry.lastError}</p>
+              <h3 className="font-semibold">What went wrong</h3>
+              <p className="mt-1">{inquiry.workflow.detail}</p>
               <p className="mt-2 text-xs">
                 Retry below. A retry never sends a second email for the same
                 inquiry.
               </p>
             </div>
+          ) : (
+            inquiry.workflow.warning && (
+              <div
+                role="status"
+                className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"
+              >
+                <h3 className="font-semibold">This step has not moved</h3>
+                <p className="mt-1">{inquiry.workflow.warning}</p>
+              </div>
+            )
           )}
           <div>
             <h3 className="mb-2 text-sm font-semibold">Recipient</h3>
@@ -121,6 +145,16 @@ function InquiryDetails({ inquiry }: { inquiry: InquiryRow }) {
                 <dt className="font-medium">Request saved</dt>
                 <dd className="mt-1 text-muted-foreground">
                   Saved in the test database.
+                </dd>
+              </div>
+              <div>
+                <dt className="font-medium">Job</dt>
+                <dd className="mt-1 text-muted-foreground">
+                  {inquiry.workflow.step === "saved"
+                    ? "Not yet dispatched to Trigger.dev."
+                    : inquiry.workflow.state === "complete"
+                      ? "Finished on Trigger.dev."
+                      : inquiry.workflow.detail}
                 </dd>
               </div>
               <div>
@@ -162,7 +196,7 @@ function InquiryDetails({ inquiry }: { inquiry: InquiryRow }) {
               </a>
             </Button>
           )}
-          {inquiry.jobStatus !== "complete" && (
+          {inquiry.workflow.state !== "complete" && (
             <TestForm inquiryId={inquiry.id} retry />
           )}
           <div className="rounded-lg bg-muted p-4">
@@ -190,12 +224,12 @@ export function InquiryWorkspace({
   staffEmail: string;
 }) {
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("all");
+  const [state, setState] = useState("all");
   const [oldestFirst, setOldestFirst] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const visible = inquiries.filter(
     (row) =>
-      (status === "all" || row.jobStatus === status) &&
+      (state === "all" || row.workflow.state === state) &&
       `${row.recipient} ${row.id} consultation request`
         .toLowerCase()
         .includes(search.toLowerCase()),
@@ -221,9 +255,12 @@ export function InquiryWorkspace({
         : [...selected, id],
     );
   const complete = inquiries.filter(
-    (row) => row.jobStatus === "complete",
+    (row) => row.workflow.state === "complete",
   ).length;
-  const failed = inquiries.filter((row) => row.jobStatus === "failed").length;
+  const failed = inquiries.filter(
+    (row) => row.workflow.state === "failed",
+  ).length;
+  const stuck = inquiries.filter((row) => row.workflow.warning).length;
   return (
     <>
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -241,7 +278,7 @@ export function InquiryWorkspace({
           <RefreshButton
             pendingSince={
               inquiries
-                .filter((row) => row.jobStatus === "pending")
+                .filter((row) => row.workflow.state === "in_progress")
                 .map((row) => row.updatedAt)
                 .sort()
                 .at(-1) ?? null
@@ -292,7 +329,10 @@ export function InquiryWorkspace({
           {
             title: "Failed",
             value: failed,
-            note: "Open a request to retry",
+            note:
+              stuck > 0
+                ? `Open a request to retry · ${stuck} waiting too long`
+                : "Open a request to retry",
             icon: ShieldCheck,
           },
         ].map(({ title, value, note, icon: Icon }) => (
@@ -344,13 +384,13 @@ export function InquiryWorkspace({
               />
             </div>
             <select
-              aria-label="Filter by status"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
+              aria-label="Filter by workflow step"
+              value={state}
+              onChange={(e) => setState(e.target.value)}
               className="h-10 rounded-lg border bg-background px-3 text-sm"
             >
-              <option value="all">All statuses</option>
-              <option value="pending">Pending</option>
+              <option value="all">All steps</option>
+              <option value="in_progress">In progress</option>
               <option value="complete">Complete</option>
               <option value="failed">Failed</option>
             </select>
@@ -377,7 +417,7 @@ export function InquiryWorkspace({
                   Inquiry
                 </th>
                 <th scope="col" className="px-5 py-3 font-medium">
-                  Status
+                  Workflow step
                 </th>
                 <th scope="col" className="px-5 py-3 font-medium">
                   Email
@@ -429,10 +469,11 @@ export function InquiryWorkspace({
                     </p>
                   </td>
                   <td className="px-5 py-5">
-                    <Status status={inquiry.jobStatus} />
+                    <StepBadge workflow={inquiry.workflow} />
+                    <StepWarning workflow={inquiry.workflow} />
                   </td>
-                  <td className="px-5 py-5 text-muted-foreground">
-                    {inquiry.emailId ? "Accepted" : "Pending"}
+                  <td className="whitespace-nowrap px-5 py-5 text-muted-foreground">
+                    {inquiry.emailId ? "Accepted by Resend" : "Not sent"}
                   </td>
                   <td className="whitespace-nowrap px-5 py-5 text-muted-foreground">
                     {createdLabel(inquiry.createdAt)}
@@ -470,8 +511,10 @@ export function InquiryWorkspace({
         </div>
       </Card>
       <p className="mt-5 text-xs leading-5 text-muted-foreground">
-        Test data only. Email acceptance does not confirm delivery. Open an
-        inquiry to check delivery and SMS simulation.
+        Test data only. The workflow step shows how far the job got: saved,
+        dispatched, queued, running, email sent, complete, or failed. Accepted
+        by Resend does not confirm delivery. Open an inquiry to check delivery
+        and SMS simulation.
       </p>
     </>
   );
