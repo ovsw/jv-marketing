@@ -174,4 +174,26 @@ describe("draft storage", () => {
     storage.setItem(draftStorageKey, JSON.stringify({ answers: {} }));
     expect(loadDraft(storage)).toBeNull();
   });
+
+  it("drops contact and consent values of the wrong shape", async () => {
+    const { draftStorageKey, loadDraft, toDraft } = await import("@/lib/assessment/quiz");
+    const storage = memoryStorage();
+    storage.setItem(
+      draftStorageKey,
+      JSON.stringify({
+        answers: {},
+        contact: { email: 42, firstName: "A", lastName: null, phone: ["x"] },
+        consent: { channels: ["email", "fax", 7] },
+      }),
+    );
+    const restored = loadDraft(storage);
+    expect(restored?.contact).toEqual({
+      email: "",
+      firstName: "A",
+      lastName: "",
+      phone: "",
+    });
+    expect(restored?.consent.channels).toEqual(["email"]);
+    expect(() => toDraft(restored!)).not.toThrow();
+  });
 });

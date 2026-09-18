@@ -124,12 +124,22 @@ export function loadDraft(storage: Storage): QuizValues | null {
     }
     const stored = parsed as Partial<QuizValues>;
     const empty = emptyQuizValues();
+    // Storage is outside the app, so every field is checked before use.
+    const contact = { ...empty.contact };
+    for (const key of ["email", "firstName", "lastName", "phone"] as const) {
+      const value: unknown = stored.contact?.[key];
+      if (typeof value === "string") contact[key] = value;
+    }
+    const channels: unknown = stored.consent?.channels;
     return {
       answers: { ...empty.answers, ...stored.answers },
-      contact: { ...empty.contact, ...stored.contact },
+      contact,
       consent: {
-        channels: Array.isArray(stored.consent?.channels)
-          ? stored.consent.channels
+        channels: Array.isArray(channels)
+          ? channels.filter(
+              (channel): channel is "email" | "sms" =>
+                channel === "email" || channel === "sms",
+            )
           : [],
       },
     };
