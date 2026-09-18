@@ -45,12 +45,17 @@ jobs:
           EVENT: ${{ github.event_name }}
           BASE: ${{ github.event.pull_request.base.ref }}
           HEAD: ${{ github.event.pull_request.head.ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          THIS_REPO: ${{ github.repository }}
         run: |
-          if [ "$EVENT" = "pull_request" ] && [ "$BASE" = "main" ] && [ "$HEAD" != "develop" ]; then
-            echo "::error::Pull requests into main must come from develop. Retarget this pull request to develop."
-            exit 1
+          if [ "$EVENT" = "pull_request" ] && [ "$BASE" = "main" ]; then
+            # A fork can also have a branch named develop, so the head repository must match too.
+            if [ "$HEAD" != "develop" ] || [ "$HEAD_REPO" != "$THIS_REPO" ]; then
+              echo "::error::Pull requests into main must come from this repository's develop branch. Retarget this pull request to develop."
+              exit 1
+            fi
           fi
-          echo "ok: $EVENT $HEAD -> ${BASE:-push}"
+          echo "ok: $EVENT $HEAD_REPO:$HEAD -> ${BASE:-push}"
 
   static:
     name: Typecheck and lint
