@@ -104,3 +104,23 @@ it("hides test submissions by default and reveals them with the labeled control"
   expect(screen.getByText("Test Caller")).toBeInTheDocument();
   expect(screen.getByText("Test", { selector: "div" })).toBeInTheDocument();
 });
+
+it("keeps raw values and says labels are unavailable for an unknown Assessment Version", () => {
+  render(
+    <PersonSubmissions
+      person={person}
+      submissions={[
+        { ...liveSubmission, assessmentVersion: "99", actionPlan: "future_plan" },
+      ]}
+    />,
+  );
+
+  const [submission] = screen.getAllByTestId("assessment-submission");
+  expect(submission).toHaveTextContent(
+    "Answer labels are unavailable for Assessment Version 99.",
+  );
+  expect(submission).toHaveTextContent("future_plan");
+  expect(
+    within(submission).queryByText("Show 3 answers", { selector: "summary" }),
+  ).not.toBeInTheDocument();
+});

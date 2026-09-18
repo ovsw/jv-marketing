@@ -2,12 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { ChevronDown, FlaskConical, Mail, Phone } from "lucide-react";
-import {
-  actionPlansV1,
-  assessmentV1,
-  type ActionPlanIdV1,
-  type QuestionIdV1,
-} from "@phx/assessment";
+import { assessmentVersions } from "@phx/assessment";
 import { Badge } from "@/components/ui/badge";
 
 export type PersonSummary = {
@@ -35,13 +30,25 @@ const receivedTime = new Intl.DateTimeFormat("en-US", {
   timeZone: "America/Phoenix",
 });
 
+type AssessmentDefinition =
+  (typeof assessmentVersions)[keyof typeof assessmentVersions];
+type Question = ReturnType<AssessmentDefinition["getQuestion"]>;
+
+/** The immutable Assessment Version a submission was rendered from, if released. */
+function assessmentFor(version: string): AssessmentDefinition | undefined {
+  return Object.hasOwn(assessmentVersions, version)
+    ? assessmentVersions[version as keyof typeof assessmentVersions]
+    : undefined;
+}
+
 function answerRows(submission: PersonAssessmentSubmission) {
-  if (submission.assessmentVersion !== assessmentV1.version) return null;
+  const assessment = assessmentFor(submission.assessmentVersion);
+  if (!assessment) return null;
 
   return Object.entries(submission.answers).flatMap(([id, value]) => {
-    if (!(id in assessmentV1.questions)) return [];
-    const question = assessmentV1.getQuestion(
-      id as QuestionIdV1,
+    if (!Object.hasOwn(assessment.questions, id)) return [];
+    const question = assessment.getQuestion(
+      id as keyof AssessmentDefinition["questions"],
       submission.answers,
     );
     return [
@@ -54,10 +61,7 @@ function answerRows(submission: PersonAssessmentSubmission) {
   });
 }
 
-function formatAnswer(
-  question: ReturnType<typeof assessmentV1.getQuestion>,
-  value: unknown,
-): string {
+function formatAnswer(question: Question, value: unknown): string {
   const options = "options" in question ? question.options : undefined;
   const label = (item: unknown) => {
     if (
@@ -102,11 +106,9 @@ function formatAnswer(
 }
 
 function actionPlanLabel(submission: PersonAssessmentSubmission) {
-  if (
-    submission.assessmentVersion === assessmentV1.version &&
-    submission.actionPlan in actionPlansV1
-  ) {
-    return actionPlansV1[submission.actionPlan as ActionPlanIdV1].label;
+  const plans = assessmentFor(submission.assessmentVersion)?.actionPlans;
+  if (plans && Object.hasOwn(plans, submission.actionPlan)) {
+    return plans[submission.actionPlan as keyof typeof plans].label;
   }
   return submission.actionPlan;
 }

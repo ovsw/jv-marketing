@@ -1,10 +1,10 @@
 import { CrmShell } from "./shell";
 import { Suspense } from "react";
 import { randomUUID } from "node:crypto";
-import { UserButton } from "@clerk/nextjs";
 import { staffUser } from "@/lib/crm/auth";
 import { listTestInquiries } from "@/lib/crm/inquiries";
 import { InquiryWorkspace } from "./inquiry-workspace";
+import { StaffAccessRequired } from "./staff-access-required";
 
 export const metadata = {
   title: "Inquiries",
@@ -27,14 +27,7 @@ export default function CrmPage() {
 
 async function CrmContent() {
   const staff = await staffUser();
-  if (!staff)
-    return (
-      <main className="mx-auto max-w-lg space-y-4 p-8">
-        <h1 className="text-2xl font-semibold">Staff access required</h1>
-        <p>This account does not have access to the CRM.</p>
-        <UserButton />
-      </main>
-    );
+  if (!staff) return <StaffAccessRequired />;
   const inquiries = await listTestInquiries();
   return (
     <CrmShell>
