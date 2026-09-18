@@ -2,7 +2,10 @@ import "server-only";
 
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { previewDatabase as database } from "@/db/client";
+// People and Assessment Submissions live in the intake database, so staff read
+// the same rows the intake route wrote: production in Production, development
+// in Preview.
+import { database } from "@/db/client";
 import {
   assessmentSubmissions,
   intakeCallers,
