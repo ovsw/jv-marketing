@@ -30,6 +30,7 @@ function fixture(sourceFiles, destinationFiles = {}) {
       encoding: "utf8",
     }),
     read: (path) => readFileSync(resolve(destination, path), "utf8"),
+    directory: (path) => mkdirSync(resolve(destination, path), { recursive: true }),
   };
 }
 
@@ -82,6 +83,15 @@ test("missing required env files fail before copying any files", () => {
   const result = setup.run();
   assert.equal(result.status, 1);
   assert.match(result.stderr, /Missing source file/);
+  assert.throws(() => setup.read(website), { code: "ENOENT" });
+});
+
+test("a destination directory fails before any env files are copied", () => {
+  const setup = fixture({ [website]: "website", [studio]: "studio" });
+  setup.directory(studio);
+  const result = setup.run();
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /Existing destination is not a regular file/);
   assert.throws(() => setup.read(website), { code: "ENOENT" });
 });
 
