@@ -15,16 +15,10 @@ import {
 } from "@/db/schema";
 import { createIntakeHandler, hashIntakeSecret } from "./intake";
 import { POST } from "@/app/api/v1/assessment-submissions/route";
+import { intakeTestDatabaseUrl } from "@/test/intake-database";
 
 // Explicit opt-in: never fall back to either application database variable.
-const url = process.env.INTAKE_TEST_DATABASE_URL;
-const host = process.env.INTAKE_TEST_DATABASE_HOST;
-if (!url || !host || new URL(url).hostname !== host) {
-  throw new Error(
-    "Set INTAKE_TEST_DATABASE_URL and its INTAKE_TEST_DATABASE_HOST to a dedicated Neon test branch.",
-  );
-}
-const db = drizzle(neon(url));
+const db = drizzle(neon(intakeTestDatabaseUrl()));
 const liveSecret = randomBytes(32).toString("hex");
 const testSecret = randomBytes(32).toString("hex");
 const liveId = randomUUID();

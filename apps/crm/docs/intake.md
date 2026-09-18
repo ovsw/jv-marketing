@@ -39,13 +39,17 @@ do not drop tables with submissions to undo an application deployment.
 
 ## Integration tests
 
-Create a dedicated Neon branch from development. Set
-`INTAKE_TEST_DATABASE_URL` to its connection string and
-`INTAKE_TEST_DATABASE_HOST` to that branch's exact endpoint hostname. These
-variables are explicit test opt-ins; the suite does not use `DATABASE_URL` or
-`PREVIEW_DATABASE_URL`. Never point them at development or production.
+Set `INTAKE_TEST_DATABASE_URL` to the connection string for the dedicated
+`test-intake-101` branch (`br-steep-lake-ayb4bqf6`). The test helper permits only
+its verified endpoint, `ep-patient-shape-ay7l2w6s`, in direct or pooled form.
+It rejects other hosts before connecting or running migrations. It does not use
+`DATABASE_URL`, `PREVIEW_DATABASE_URL`, or an environment-based host override.
 
-With both test variables supplied securely, run:
+If this branch is replaced, verify the replacement's branch and endpoint through
+Neon before updating the allowlist in `test/intake-database.ts`. Never add a
+development or production endpoint to that list.
+
+With the test connection string supplied securely, run:
 
 ```sh
 pnpm --filter crm test:intake

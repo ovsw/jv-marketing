@@ -92,7 +92,7 @@
     },
     "test:intake": {
       "cache": false,
-      "env": ["INTAKE_TEST_DATABASE_URL", "INTAKE_TEST_DATABASE_HOST"]
+      "env": ["INTAKE_TEST_DATABASE_URL"]
     },
     "test:e2e": {
       "cache": false,
