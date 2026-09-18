@@ -337,6 +337,9 @@ All environment variables and their descriptions:
 - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` - the Clerk application credentials.
 - `CRM_STAFF_EMAILS` - verified email addresses that can use the staff CRM.
 - `PREVIEW_DATABASE_URL` - the pinned Neon development branch used by the test-inquiry flow.
+- `DATABASE_URL` - the CRM intake database, with TLS. Production uses the named
+  Neon `production` branch; Preview uses `development`. The websites never receive
+  this credential. See [intake setup and tests](apps/crm/docs/intake.md).
 - `TRIGGER_SECRET_KEY` - the Trigger.dev environment secret.
 - `TEST_EMAIL_ALLOWLIST` - staff addresses that can receive test email.
 - `PREVIEW_EMAIL_ENABLED`, `RESEND_API_KEY`, and `RESEND_FROM` - test-email controls.

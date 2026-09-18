@@ -9,9 +9,9 @@ export default defineConfig({
     },
   },
   test: {
-    environment: "jsdom",
-    include: ["**/*.test.{ts,tsx}"],
-    exclude: ["**/*.integration.test.ts", "**/node_modules/**"],
-    setupFiles: ["./vitest.setup.ts"],
+    environment: "node",
+    include: ["lib/crm/intake.integration.test.ts"],
+    testTimeout: 30000,
+    hookTimeout: 30000,
   },
 });

@@ -8,6 +8,7 @@
       "env": [
         "CLERK_SECRET_KEY",
         "CRM_STAFF_EMAILS",
+        "DATABASE_URL",
         "NEXT_ALLOWED_DEV_ORIGINS",
         "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
         "NEXT_PUBLIC_SANITY_API_VERSION",
@@ -40,6 +41,7 @@
       "env": [
         "CLERK_SECRET_KEY",
         "CRM_STAFF_EMAILS",
+        "DATABASE_URL",
         "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
         "NEXT_PUBLIC_SANITY_API_VERSION",
         "NEXT_PUBLIC_SANITY_DATASET",
@@ -87,6 +89,10 @@
         "TEST_EMAIL_ALLOWLIST",
         "TRIGGER_SECRET_KEY"
       ]
+    },
+    "test:intake": {
+      "cache": false,
+      "env": ["INTAKE_TEST_DATABASE_URL"]
     },
     "test:e2e": {
       "cache": false,
