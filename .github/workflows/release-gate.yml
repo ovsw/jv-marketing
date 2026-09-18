@@ -99,6 +99,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           DEPLOY_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           DEPLOY_ENVIRONMENT: ${{ github.event_name == 'pull_request' && 'Preview – phxhomeloancom-2026' || 'Production – phxhomeloancom-2026' }}
+          DEPLOY_STATUS_CONTEXT: Vercel – phxhomeloancom-2026
         run: |
           url=$(node scripts/wait-for-vercel-deployment.mjs)
           echo "url=$url" >> "$GITHUB_OUTPUT"
@@ -117,6 +118,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           DEPLOY_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           DEPLOY_ENVIRONMENT: ${{ github.event_name == 'pull_request' && 'Preview – valoansforvets-crm' || 'Production – valoansforvets-crm' }}
+          DEPLOY_STATUS_CONTEXT: Vercel – valoansforvets-crm
         run: |
           url=$(node scripts/wait-for-vercel-deployment.mjs)
           echo "url=$url" >> "$GITHUB_OUTPUT"

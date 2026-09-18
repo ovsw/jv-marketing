@@ -2,15 +2,25 @@
 // API (populated by the Vercel GitHub integration) and wait until it succeeds.
 // Prints the URL on stdout so a workflow step can capture it.
 //
-// Env: GITHUB_REPOSITORY, GITHUB_TOKEN, DEPLOY_SHA, DEPLOY_ENVIRONMENT
+// Env: GITHUB_REPOSITORY, GITHUB_TOKEN, DEPLOY_SHA, DEPLOY_ENVIRONMENT,
+// DEPLOY_STATUS_CONTEXT
 // (the exact GitHub environment, e.g. "Production – phxhomeloancom-2026"),
 // optional DEPLOY_TIMEOUT_MS (default 10 min).
 
-const { GITHUB_REPOSITORY, GITHUB_TOKEN, DEPLOY_SHA, DEPLOY_ENVIRONMENT } = process.env;
+import { spawnSync } from "node:child_process";
+
+const { GITHUB_REPOSITORY, GITHUB_TOKEN, DEPLOY_SHA, DEPLOY_ENVIRONMENT, DEPLOY_STATUS_CONTEXT } =
+  process.env;
 const timeoutMs = Number(process.env.DEPLOY_TIMEOUT_MS ?? 10 * 60 * 1000);
 const pollMs = 10_000;
 
-for (const [name, value] of Object.entries({ GITHUB_REPOSITORY, GITHUB_TOKEN, DEPLOY_SHA, DEPLOY_ENVIRONMENT })) {
+for (const [name, value] of Object.entries({
+  GITHUB_REPOSITORY,
+  GITHUB_TOKEN,
+  DEPLOY_SHA,
+  DEPLOY_ENVIRONMENT,
+  DEPLOY_STATUS_CONTEXT,
+})) {
   if (!value) throw new Error(`Missing ${name}`);
 }
 
@@ -41,12 +51,49 @@ async function findDeployment() {
   return null;
 }
 
+async function ignoredBuild() {
+  const combined = await github(`/commits/${DEPLOY_SHA}/status`);
+  const status = combined.statuses.find(({ context }) => context === DEPLOY_STATUS_CONTEXT);
+  return status?.state === "success" && /Ignored Build Step/i.test(status.description ?? "");
+}
+
+function isAncestor(sha) {
+  return spawnSync("git", ["merge-base", "--is-ancestor", sha, DEPLOY_SHA]).status === 0;
+}
+
+async function findSuccessfulAncestorDeployment() {
+  const query = new URLSearchParams({ environment: DEPLOY_ENVIRONMENT, per_page: "25" });
+  const deployments = await github(`/deployments?${query}`);
+  for (const deployment of deployments) {
+    if (!isAncestor(deployment.sha)) continue;
+    const statuses = await github(`/deployments/${deployment.id}/statuses?per_page=1`);
+    const latest = statuses[0];
+    if (latest?.state === "success") {
+      return { url: latest.environment_url || latest.target_url, sha: deployment.sha };
+    }
+  }
+  return null;
+}
+
 const deadline = Date.now() + timeoutMs;
 for (;;) {
   const found = await findDeployment();
   if (found) {
     console.error(`Vercel ${DEPLOY_ENVIRONMENT} deployment ready: ${found.url}`);
     console.log(found.url);
+    break;
+  }
+  if (await ignoredBuild()) {
+    const ancestor = await findSuccessfulAncestorDeployment();
+    if (!ancestor) {
+      throw new Error(
+        `Vercel skipped ${DEPLOY_STATUS_CONTEXT}, but no successful ancestor deployment exists`,
+      );
+    }
+    console.error(
+      `Vercel skipped ${DEPLOY_STATUS_CONTEXT}; reusing successful ancestor ${ancestor.sha}`,
+    );
+    console.log(ancestor.url);
     break;
   }
   if (Date.now() > deadline) {
