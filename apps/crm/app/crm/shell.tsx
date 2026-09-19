@@ -1,6 +1,6 @@
 "use client";
 // Shadcnblocks sidebar1. Navigation points only to implemented destinations.
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Inbox, Shield, Users } from "lucide-react";
@@ -27,7 +27,14 @@ import {
   SidebarProvider,
   SidebarRail,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
+
+function SidebarLink(props: ComponentProps<typeof Link>) {
+  const { setOpenMobile } = useSidebar();
+  return <Link {...props} onNavigate={() => setOpenMobile(false)} />;
+}
+
 export function CrmShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const inquiriesActive = pathname === "/crm";
@@ -51,7 +58,7 @@ export function CrmShell({ children }: { children: ReactNode }) {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton size="lg" asChild>
-                <Link href="/crm">
+                <SidebarLink href="/crm">
                   <span className="flex aspect-square size-8 items-center justify-center rounded-sm bg-primary text-primary-foreground">
                     <Shield className="size-5" />
                   </span>
@@ -61,7 +68,7 @@ export function CrmShell({ children }: { children: ReactNode }) {
                       Team workspace
                     </span>
                   </span>
-                </Link>
+                </SidebarLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -73,24 +80,24 @@ export function CrmShell({ children }: { children: ReactNode }) {
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={inquiriesActive}>
-                    <Link
+                    <SidebarLink
                       href="/crm"
                       aria-current={inquiriesActive ? "page" : undefined}
                     >
                       <Inbox />
                       Inquiries
-                    </Link>
+                    </SidebarLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={peopleActive}>
-                    <Link
+                    <SidebarLink
                       href="/crm/people"
                       aria-current={peopleActive ? "page" : undefined}
                     >
                       <Users />
                       People
-                    </Link>
+                    </SidebarLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
