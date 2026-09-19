@@ -30,7 +30,7 @@ const tester = {
   firstName: "Taylor",
   lastName: "Tester",
   email: "taylor@example.com",
-  latestOriginBrand: "Test Caller",
+  latestOriginBrand: "PHX Preview",
   liveSubmissionCount: 0,
   testSubmissionCount: 3,
   lastReceivedAt: "2026-09-19T14:30:00.000Z",
@@ -60,23 +60,27 @@ it("lists People newest first with a link to each Person page", () => {
   expect(second.getByText("PHXHomeLoan.com")).toBeVisible();
 });
 
-it("hides People with only test submissions until the labeled control is checked", async () => {
+it("shows preview People and their submission count by default, with an optional live-only filter", async () => {
   const user = userEvent.setup();
   render(<PeopleList people={[tester, jamie]} />);
 
-  expect(screen.queryByText("Taylor Tester")).not.toBeInTheDocument();
+  const rows = screen.getAllByTestId("person");
+  expect(rows).toHaveLength(2);
+  expect(rows[0]).toHaveTextContent("Taylor Tester");
+  expect(within(rows[0]).getByText("Preview / test")).toBeVisible();
+  expect(within(rows[0]).getByText("3", { selector: "td" })).toBeVisible();
   const control = screen.getByRole("checkbox", {
-    name: "Show test-only People (1)",
+    name: "Live only",
   });
   expect(control).not.toBeChecked();
 
   await user.click(control);
 
   expect(control).toBeChecked();
-  const rows = screen.getAllByTestId("person");
-  expect(rows).toHaveLength(2);
-  expect(rows[0]).toHaveTextContent("Taylor Tester");
-  expect(within(rows[0]).getByText("Test")).toBeVisible();
+  expect(screen.queryByText("Taylor Tester")).not.toBeInTheDocument();
+  expect(screen.getByText("Jamie Veteran")).toBeVisible();
+  await user.click(control);
+  expect(screen.getByText("Taylor Tester")).toBeVisible();
 });
 
 it("offers no test control and an empty state when there are no People", () => {
@@ -84,4 +88,15 @@ it("offers no test control and an empty state when there are no People", () => {
 
   expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
   expect(screen.getByText("No People yet")).toBeVisible();
+});
+
+it("counts both environments for a mixed Person and only live submissions when filtered", async () => {
+  const user = userEvent.setup();
+  render(<PeopleList people={[alex]} />);
+
+  const row = screen.getByTestId("person");
+  expect(within(row).getByText("2", { selector: "td" })).toBeVisible();
+  await user.click(screen.getByRole("checkbox", { name: "Live only" }));
+  expect(within(row).getByText("1", { selector: "td" })).toBeVisible();
+  expect(within(row).getByRole("link", { name: "Alex Older" })).toBeVisible();
 });

@@ -30,8 +30,8 @@ test("keeps the shell when opening a Person and returning to People", async ({ p
   await expect(page.getByRole("heading", { name: "Inquiries", exact: true })).toBeVisible();
   await page.getByRole("link", { name: "People", exact: true }).click();
   await expect(page.getByRole("heading", { name: "People", exact: true })).toBeVisible();
-  const showTestPeople = page.getByRole("checkbox", { name: /Show test-only People/ });
-  if (await showTestPeople.count()) await showTestPeople.check();
+  const liveOnly = page.getByRole("checkbox", { name: "Live only", exact: true });
+  if (await liveOnly.count()) await expect(liveOnly).not.toBeChecked();
   const personLink = page.locator('main a[href^="/crm/people/"]').first();
   test.skip(await personLink.count() === 0, "Requires an existing development Person");
   const sidebar = page.locator('[data-sidebar="sidebar"]');
