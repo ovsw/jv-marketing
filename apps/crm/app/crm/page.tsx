@@ -1,4 +1,3 @@
-import { CrmShell } from "./shell";
 import { Suspense } from "react";
 import { randomUUID } from "node:crypto";
 import { staffUser } from "@/lib/crm/auth";
@@ -15,9 +14,9 @@ export default function CrmPage() {
   return (
     <Suspense
       fallback={
-        <main className="p-8 text-sm text-muted-foreground">
+        <p role="status" className="text-sm text-muted-foreground">
           Loading inquiries…
-        </main>
+        </p>
       }
     >
       <CrmContent />
@@ -30,40 +29,38 @@ async function CrmContent() {
   if (!staff) return <StaffAccessRequired />;
   const inquiries = await listTestInquiries();
   return (
-    <CrmShell>
-      <InquiryWorkspace
-        inquiryId={randomUUID()}
-        staffEmail={staff.email}
-        inquiries={inquiries.map(
-          ({
-            id,
-            recipient,
-            createdAt,
-            jobStatus,
-            emailId,
-            smsStatus,
-            lastError,
-            updatedAt,
-            sms,
-            workflow,
-          }) => ({
-            id,
-            recipient,
-            createdAt: createdAt.toISOString(),
-            jobStatus,
-            emailId,
-            smsStatus,
-            lastError,
-            updatedAt: updatedAt.toISOString(),
-            workflow,
-            sms: sms && {
-              recipient: sms.recipient,
-              message: sms.message,
-              simulatedAt: sms.simulatedAt.toISOString(),
-            },
-          }),
-        )}
-      />
-    </CrmShell>
+    <InquiryWorkspace
+      inquiryId={randomUUID()}
+      staffEmail={staff.email}
+      inquiries={inquiries.map(
+        ({
+          id,
+          recipient,
+          createdAt,
+          jobStatus,
+          emailId,
+          smsStatus,
+          lastError,
+          updatedAt,
+          sms,
+          workflow,
+        }) => ({
+          id,
+          recipient,
+          createdAt: createdAt.toISOString(),
+          jobStatus,
+          emailId,
+          smsStatus,
+          lastError,
+          updatedAt: updatedAt.toISOString(),
+          workflow,
+          sms: sms && {
+            recipient: sms.recipient,
+            message: sms.message,
+            simulatedAt: sms.simulatedAt.toISOString(),
+          },
+        }),
+      )}
+    />
   );
 }

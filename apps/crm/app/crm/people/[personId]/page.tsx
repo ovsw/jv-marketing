@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { staffUser } from "@/lib/crm/auth";
 import { getPersonWithAssessmentSubmissions } from "@/lib/crm/people";
-import { CrmShell } from "../../shell";
 import { StaffAccessRequired } from "../../staff-access-required";
 import { PersonSubmissions } from "./person-submissions";
 
@@ -19,9 +18,9 @@ export default function PersonPage({
   return (
     <Suspense
       fallback={
-        <main className="p-8 text-sm text-muted-foreground">
+        <p role="status" className="text-sm text-muted-foreground">
           Loading Person…
-        </main>
+        </p>
       }
     >
       <PersonContent params={params} />
@@ -41,21 +40,13 @@ async function PersonContent({
   const record = await getPersonWithAssessmentSubmissions(personId);
   if (!record) notFound();
 
-  const personName = `${record.person.firstName} ${record.person.lastName}`;
-
   return (
-    <CrmShell
-      currentPage={personName}
-      skipLabel="Skip to Person details"
-      activeNav="people"
-    >
-      <PersonSubmissions
-        person={record.person}
-        submissions={record.submissions.map((submission) => ({
-          ...submission,
-          receivedAt: submission.receivedAt.toISOString(),
-        }))}
-      />
-    </CrmShell>
+    <PersonSubmissions
+      person={record.person}
+      submissions={record.submissions.map((submission) => ({
+        ...submission,
+        receivedAt: submission.receivedAt.toISOString(),
+      }))}
+    />
   );
 }

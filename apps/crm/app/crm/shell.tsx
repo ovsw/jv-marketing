@@ -2,6 +2,7 @@
 // Shadcnblocks sidebar1. Navigation points only to implemented destinations.
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Inbox, Shield, Users } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import { Separator } from "@/components/ui/separator";
@@ -27,28 +28,23 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-export type CrmNav = "inquiries" | "people";
-
-export function CrmShell({
-  children,
-  currentPage = "Inquiries",
-  skipLabel = "Skip to inquiries",
-  activeNav = "inquiries",
-}: {
-  children: ReactNode;
-  currentPage?: string;
-  skipLabel?: string;
-  activeNav?: CrmNav | null;
-}) {
-  const inquiriesActive = activeNav === "inquiries";
-  const peopleActive = activeNav === "people";
+export function CrmShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const inquiriesActive = pathname === "/crm";
+  const peopleActive =
+    pathname === "/crm/people" || pathname.startsWith("/crm/people/");
+  const currentPage = pathname.startsWith("/crm/people/")
+    ? "Person"
+    : peopleActive
+      ? "People"
+      : "Inquiries";
   return (
     <SidebarProvider>
       <a
         href="#workspace"
         className="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:bg-white focus:p-4"
       >
-        {skipLabel}
+        Skip to workspace
       </a>
       <Sidebar>
         <SidebarHeader>
