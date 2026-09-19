@@ -40,7 +40,7 @@ const testSubmission = {
   id: "10000000-0000-4000-8000-000000000003",
   environment: "test" as const,
   receivedAt: "2026-09-19T14:30:00.000Z",
-  originBrand: "Test Caller",
+  originBrand: "PHX Preview",
 };
 
 it("renders a Person's live Assessment Submissions newest first with canonical labels", async () => {
@@ -83,7 +83,7 @@ it("renders a Person's live Assessment Submissions newest first with canonical l
   ).toBeVisible();
 });
 
-it("hides test submissions by default and reveals them with the labeled control", async () => {
+it("shows preview submissions by default and hides them only when Live only is selected", async () => {
   const user = userEvent.setup();
   render(
     <PersonSubmissions
@@ -92,17 +92,41 @@ it("hides test submissions by default and reveals them with the labeled control"
     />,
   );
 
-  expect(screen.queryByText("Test Caller")).not.toBeInTheDocument();
+  const submissions = screen.getAllByTestId("assessment-submission");
+  expect(submissions).toHaveLength(2);
+  expect(submissions[0]).toHaveTextContent("PHX Preview");
+  expect(within(submissions[0]).getByText("Preview / test")).toBeVisible();
   const control = screen.getByRole("checkbox", {
-    name: "Show test submissions (1)",
+    name: "Live only",
   });
   expect(control).not.toBeChecked();
 
   await user.click(control);
 
   expect(control).toBeChecked();
-  expect(screen.getByText("Test Caller")).toBeInTheDocument();
-  expect(screen.getByText("Test", { selector: "div" })).toBeInTheDocument();
+  expect(screen.queryByText("PHX Preview")).not.toBeInTheDocument();
+  expect(screen.getByText("VALoansForVets.com")).toBeVisible();
+  await user.click(control);
+  expect(screen.getByText("PHX Preview")).toBeVisible();
+});
+
+it("shows a preview-only Person's assessment and answers without enabling a filter", async () => {
+  const user = userEvent.setup();
+  render(<PersonSubmissions person={person} submissions={[testSubmission]} />);
+
+  expect(screen.getByText("PHX Preview")).toBeVisible();
+  await user.click(screen.getByText("Show 3 answers", { selector: "summary" }));
+  expect(screen.getByText("I Want to Buy a Home")).toBeVisible();
+  await user.click(screen.getByRole("checkbox", { name: "Live only" }));
+  expect(screen.getByText("No live Assessment Submissions")).toBeVisible();
+  expect(screen.getByText(/Clear Live only/)).toBeVisible();
+});
+
+it("distinguishes an empty history from a filtered history", () => {
+  render(<PersonSubmissions person={person} submissions={[]} />);
+
+  expect(screen.getByText("No Assessment Submissions yet")).toBeVisible();
+  expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
 });
 
 it("keeps raw values and says labels are unavailable for an unknown Assessment Version", async () => {

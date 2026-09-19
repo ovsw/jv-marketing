@@ -20,8 +20,9 @@ Assessment Submissions that led to follow-up.
 ## Operating Context
 
 Staff use the CRM as an authenticated internal workspace. Assessment
-Submissions can come from live or test environments. Live records are the
-normal working set; test records stay available for explicit inspection.
+Submissions can come from live or test environments. Preview website submissions
+are saved assessments, distinct from the sample inquiries created by the CRM's
+test inquiry button. Staff see all assessments by default and can select Live only.
 
 ## Capabilities and Constraints
 
@@ -32,7 +33,7 @@ normal working set; test records stay available for explicit inspection.
 - Assessment labels, scoring, and Action Plans come from the immutable shared
   Assessment Version that rendered the submission.
 - An Assessment Submission is immutable after receipt.
-- Test-environment submissions are hidden from staff views by default.
+- Show live and preview/test submissions by default, with their environment labels.
 - Use the project glossary in the repository root for domain terms.
 
 ## Brand Commitments
@@ -52,7 +53,7 @@ outcomes.
 
 - Keep a Person’s history together across Origin Brands.
 - Preserve the exact meaning of every submitted Assessment Version.
-- Keep live work prominent and test data available by deliberate choice.
+- Keep saved assessments visible. Make Live only an explicit filter choice.
 - Enforce staff access before reading CRM data.
 
 ## Accessibility & Inclusion

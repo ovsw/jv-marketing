@@ -130,7 +130,7 @@ export function PersonSubmissions({
   person: PersonSummary;
   submissions: PersonAssessmentSubmission[];
 }) {
-  const [showTest, setShowTest] = useState(false);
+  const [liveOnly, setLiveOnly] = useState(false);
   const orderedSubmissions = useMemo(
     () =>
       [...submissions].sort(
@@ -142,11 +142,11 @@ export function PersonSubmissions({
   const testCount = orderedSubmissions.filter(
     (submission) => submission.environment === "test",
   ).length;
-  const visibleSubmissions = showTest
-    ? orderedSubmissions
-    : orderedSubmissions.filter(
+  const visibleSubmissions = liveOnly
+    ? orderedSubmissions.filter(
         (submission) => submission.environment === "live",
-      );
+      )
+    : orderedSubmissions;
 
   return (
     <div className="space-y-8">
@@ -187,28 +187,34 @@ export function PersonSubmissions({
               Assessment Submissions
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Received answers and results, resolved against the Assessment
-              Version the visitor saw.
+              Saved answers and results from live and preview websites, using the
+              Assessment Version the visitor saw.
             </p>
           </div>
           {testCount > 0 ? (
             <label className="inline-flex min-h-9 cursor-pointer items-center gap-2 text-sm font-medium">
               <input
                 type="checkbox"
-                checked={showTest}
-                onChange={(event) => setShowTest(event.currentTarget.checked)}
+                checked={liveOnly}
+                onChange={(event) => setLiveOnly(event.currentTarget.checked)}
                 className="size-4 rounded border-input accent-primary focus-ring"
               />
-              Show test submissions ({testCount})
+              Live only
             </label>
           ) : null}
         </div>
 
         {visibleSubmissions.length === 0 ? (
           <div className="py-12 text-center">
-            <p className="font-medium">No live Assessment Submissions</p>
+            <p className="font-medium">
+              {submissions.length === 0
+                ? "No Assessment Submissions yet"
+                : "No live Assessment Submissions"}
+            </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              This Person has no live submissions to review.
+              {submissions.length === 0
+                ? "This Person has no saved assessments."
+                : "Clear Live only to see preview or test submissions."}
             </p>
           </div>
         ) : (
@@ -232,7 +238,7 @@ export function PersonSubmissions({
                           {submission.environment === "test" ? (
                             <Badge variant="outline" className="gap-1">
                               <FlaskConical aria-hidden="true" className="size-3" />
-                              Test
+                              Preview / test
                             </Badge>
                           ) : null}
                         </div>

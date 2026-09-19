@@ -23,11 +23,11 @@ function isTestOnly(person: PersonListRow) {
 }
 
 export function PeopleList({ people }: { people: PersonListRow[] }) {
-  const [showTest, setShowTest] = useState(false);
-  const testOnlyCount = people.filter(isTestOnly).length;
-  const visiblePeople = showTest
-    ? people
-    : people.filter((person) => !isTestOnly(person));
+  const [liveOnly, setLiveOnly] = useState(false);
+  const hasTestSubmissions = people.some((person) => person.testSubmissionCount > 0);
+  const visiblePeople = liveOnly
+    ? people.filter((person) => !isTestOnly(person))
+    : people;
 
   return (
     <section aria-labelledby="people-heading" className="space-y-4">
@@ -37,18 +37,19 @@ export function PeopleList({ people }: { people: PersonListRow[] }) {
             People
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Everyone who has completed an Assessment, newest submission first.
+            Everyone who has completed an Assessment, including submissions from
+            preview websites. Newest submission first.
           </p>
         </div>
-        {testOnlyCount > 0 ? (
+        {hasTestSubmissions ? (
           <label className="inline-flex min-h-9 cursor-pointer items-center gap-2 text-sm font-medium">
             <input
               type="checkbox"
-              checked={showTest}
-              onChange={(event) => setShowTest(event.currentTarget.checked)}
+              checked={liveOnly}
+              onChange={(event) => setLiveOnly(event.currentTarget.checked)}
               className="size-4 rounded border-input accent-primary focus-ring"
             />
-            Show test-only People ({testOnlyCount})
+            Live only
           </label>
         ) : null}
       </div>
@@ -61,7 +62,7 @@ export function PeopleList({ people }: { people: PersonListRow[] }) {
           <p className="mt-1 text-sm text-muted-foreground">
             {people.length === 0
               ? "A Person appears here after their first Assessment Submission."
-              : "Every Person so far has only sent test submissions."}
+              : "Clear Live only to see People with preview or test submissions."}
           </p>
         </div>
       ) : (
@@ -79,7 +80,7 @@ export function PeopleList({ people }: { people: PersonListRow[] }) {
                   Latest Origin Brand
                 </th>
                 <th scope="col" className="py-2 pr-4 text-right font-medium">
-                  Live submissions
+                  Submissions
                 </th>
                 <th scope="col" className="py-2 font-medium">
                   Last received
@@ -100,7 +101,7 @@ export function PeopleList({ people }: { people: PersonListRow[] }) {
                       {isTestOnly(person) ? (
                         <Badge variant="outline" className="gap-1">
                           <FlaskConical aria-hidden="true" className="size-3" />
-                          Test
+                          Preview / test
                         </Badge>
                       ) : null}
                     </div>
@@ -108,7 +109,8 @@ export function PeopleList({ people }: { people: PersonListRow[] }) {
                   <td className="py-3 pr-4">{person.email}</td>
                   <td className="py-3 pr-4">{person.latestOriginBrand}</td>
                   <td className="py-3 pr-4 text-right tabular-nums">
-                    {person.liveSubmissionCount}
+                    {person.liveSubmissionCount +
+                      (liveOnly ? 0 : person.testSubmissionCount)}
                   </td>
                   <td className="py-3 whitespace-nowrap">
                     <time dateTime={person.lastReceivedAt}>
