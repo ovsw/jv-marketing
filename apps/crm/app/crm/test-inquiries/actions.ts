@@ -13,7 +13,7 @@ export async function createTestInquiry(_previous: string, formData: FormData) {
     console.error("Test inquiry action failed", error);
     return "The test could not finish. Close this panel, find the inquiry in the list, and retry it.";
   }
-  revalidatePath("/crm");
+  revalidatePath("/crm/test-inquiries");
   return "Test inquiry saved. The status updates here as the job runs.";
 }
 
@@ -30,6 +30,6 @@ export async function deleteInquiries(_previous: string, formData: FormData) {
     console.error("Delete inquiries action failed", error);
     return "The inquiries could not be deleted. Refresh and try again.";
   }
-  revalidatePath("/crm");
+  revalidatePath("/crm/test-inquiries");
   return count === 1 ? "1 inquiry deleted." : `${count} inquiries deleted.`;
 }

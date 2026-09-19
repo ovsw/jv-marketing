@@ -1,0 +1,1 @@
+CREATE INDEX "submission_received_id_idx" ON "crm_assessment_submissions" USING btree ("received_at","id");

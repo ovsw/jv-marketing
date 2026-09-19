@@ -10,7 +10,11 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["lib/crm/intake.integration.test.ts"],
+    include: [
+      "lib/crm/intake.integration.test.ts",
+      "lib/crm/submissions.integration.test.ts",
+    ],
+    fileParallelism: false,
     testTimeout: 30000,
     hookTimeout: 30000,
   },

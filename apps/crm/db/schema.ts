@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   check,
+  index,
   integer,
   jsonb,
   pgTable,
@@ -85,6 +86,7 @@ export const assessmentSubmissions = pgTable(
       "submission_score_range",
       sql`${table.reportedScore} between 0 and 100`,
     ),
+    index("submission_received_id_idx").on(table.receivedAt, table.id),
   ],
 );
 

@@ -3,7 +3,7 @@
 import type { ComponentProps, ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Inbox, Shield, Users } from "lucide-react";
+import { FlaskConical, Inbox, Shield, Users } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -37,14 +37,17 @@ function SidebarLink(props: ComponentProps<typeof Link>) {
 
 export function CrmShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const inquiriesActive = pathname === "/crm";
+  const submissionsActive = pathname === "/crm";
+  const inquiriesActive = pathname === "/crm/test-inquiries";
   const peopleActive =
     pathname === "/crm/people" || pathname.startsWith("/crm/people/");
   const currentPage = pathname.startsWith("/crm/people/")
     ? "Person"
     : peopleActive
       ? "People"
-      : "Inquiries";
+      : inquiriesActive
+        ? "Test inquiries"
+        : "Assessment Submissions";
   return (
     <SidebarProvider>
       <a
@@ -79,13 +82,24 @@ export function CrmShell({ children }: { children: ReactNode }) {
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={inquiriesActive}>
+                  <SidebarMenuButton asChild isActive={submissionsActive}>
                     <SidebarLink
                       href="/crm"
-                      aria-current={inquiriesActive ? "page" : undefined}
+                      aria-current={submissionsActive ? "page" : undefined}
                     >
                       <Inbox />
-                      Inquiries
+                      Assessment Submissions
+                    </SidebarLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={inquiriesActive}>
+                    <SidebarLink
+                      href="/crm/test-inquiries"
+                      aria-current={inquiriesActive ? "page" : undefined}
+                    >
+                      <FlaskConical />
+                      Test inquiries
                     </SidebarLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

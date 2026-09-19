@@ -10,7 +10,7 @@ test.skip(!process.env.CRM_E2E_AUTH_STATE, "Requires a development staff session
 test("closes the mobile menu after navigation without replacing the header", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/crm");
-  await expect(page.getByRole("heading", { name: "Inquiries", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Assessment Submissions", exact: true })).toBeVisible();
   const header = page.locator("header");
   const headerNode = await header.elementHandle();
   await header.getByRole("button", { name: "Toggle Sidebar", exact: true }).click();
@@ -27,7 +27,7 @@ test("closes the mobile menu after navigation without replacing the header", asy
 
 test("keeps the shell when opening a Person and returning to People", async ({ page }) => {
   await page.goto("/crm");
-  await expect(page.getByRole("heading", { name: "Inquiries", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Assessment Submissions", exact: true })).toBeVisible();
   await page.getByRole("link", { name: "People", exact: true }).click();
   await expect(page.getByRole("heading", { name: "People", exact: true })).toBeVisible();
   const liveOnly = page.getByRole("checkbox", { name: "Live only", exact: true });
@@ -50,7 +50,7 @@ test("keeps the shell when opening a Person and returning to People", async ({ p
 
 test("keeps the shell mounted when staff navigate between workspaces", async ({ page }) => {
   await page.goto("/crm");
-  await expect(page.getByRole("heading", { name: "Inquiries", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Assessment Submissions", exact: true })).toBeVisible();
   const sidebar = page.locator('[data-sidebar="sidebar"]');
   const shellNode = await sidebar.elementHandle();
   const headerNode = await page.locator("header").elementHandle();
@@ -74,19 +74,19 @@ test("keeps the shell mounted when staff navigate between workspaces", async ({ 
   await page.locator("header").getByRole("button", { name: "Toggle Sidebar", exact: true }).click();
   await expect(page.locator('[data-state="collapsed"][data-side="left"]')).toHaveCount(1);
   await page.goBack();
-  await expect(page.getByRole("heading", { name: "Inquiries", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Assessment Submissions", exact: true })).toBeVisible();
   await expect(page.locator('[data-state="collapsed"][data-side="left"]')).toHaveCount(1);
-  await expect(page.locator("header")).toContainText("Inquiries");
+  await expect(page.locator("header")).toContainText("Assessment Submissions");
   await page.goForward();
   await expect(page.getByRole("heading", { name: "People", exact: true })).toBeVisible();
   await expect(page.locator('[data-state="collapsed"][data-side="left"]')).toHaveCount(1);
   expect(documents).toEqual([]);
   expect(await shellNode!.evaluate((node) => node.isConnected)).toBe(true);
   await page.locator("header").getByRole("button", { name: "Toggle Sidebar", exact: true }).click();
-  await sidebar.getByRole("link", { name: "Inquiries", exact: true }).focus();
+  await sidebar.getByRole("link", { name: "Assessment Submissions", exact: true }).focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("heading", { name: "Inquiries", exact: true })).toBeVisible();
-  await expect(sidebar.getByRole("link", { name: "Inquiries", exact: true })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("heading", { name: "Assessment Submissions", exact: true })).toBeVisible();
+  await expect(sidebar.getByRole("link", { name: "Assessment Submissions", exact: true })).toHaveAttribute("aria-current", "page");
   await expect(sidebar).toHaveCount(1);
   expect(await shellNode!.evaluate((node) => node.isConnected)).toBe(true);
   expect(documents).toEqual([]);
