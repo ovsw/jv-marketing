@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   contactStepFieldNames,
   emptyQuizValues,
+  expectedQuizSteps,
   firstUnansweredStep,
   hasAnswer,
   quizSteps,
@@ -24,6 +25,20 @@ describe("quizSteps", () => {
     expect(
       quizSteps({ mortgage_goal: "purchase", owns_home: "yes" }),
     ).toContain("selling_home");
+  });
+});
+
+describe("expectedQuizSteps", () => {
+  it("previews the purchase path until a path is chosen", () => {
+    expect(expectedQuizSteps({})).toEqual(quizSteps({ mortgage_goal: "purchase" }));
+    expect(expectedQuizSteps({ mortgage_goal: "" })).toEqual(
+      quizSteps({ mortgage_goal: "purchase" }),
+    );
+  });
+
+  it("follows the chosen path", () => {
+    const refinance = { mortgage_goal: "refinance" };
+    expect(expectedQuizSteps(refinance)).toEqual(quizSteps(refinance));
   });
 });
 
