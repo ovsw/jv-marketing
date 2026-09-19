@@ -3,11 +3,13 @@ import { beforeEach, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   staff: vi.fn(),
   database: vi.fn(),
+  submissions: vi.fn(),
   queries: [] as Array<() => Promise<unknown[]>>,
 }));
 
 vi.mock("./auth", () => ({ requireStaff: mocks.staff }));
 vi.mock("@/db/client", () => ({ database: mocks.database }));
+vi.mock("./submissions", () => ({ listAssessmentSubmissions: mocks.submissions }));
 
 import { getPersonWithAssessmentSubmissions, listPeople } from "./people";
 
@@ -104,23 +106,23 @@ it("treats an invalid Person ID as missing after authorization", async () => {
 
 it("returns a Person with submission Origin Brands", async () => {
   queueQuery([person]);
-  queueQuery([submission]);
+  mocks.submissions.mockResolvedValue({ items: [submission], nextCursor: "older" });
 
   await expect(getPersonWithAssessmentSubmissions(person.id)).resolves.toEqual({
     person,
     submissions: [submission],
+    nextCursor: "older",
   });
   expect(mocks.staff).toHaveBeenCalledOnce();
 });
 
 it("does not query submissions when the Person does not exist", async () => {
   queueQuery([]);
-  const submissionRows = queueQuery([submission]);
 
   await expect(
     getPersonWithAssessmentSubmissions(person.id),
   ).resolves.toBeNull();
-  expect(submissionRows).not.toHaveBeenCalled();
+  expect(mocks.submissions).not.toHaveBeenCalled();
 });
 
 it("authorizes before listing People", async () => {

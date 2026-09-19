@@ -1,66 +1,69 @@
 import { Suspense } from "react";
-import { randomUUID } from "node:crypto";
 import { staffUser } from "@/lib/crm/auth";
-import { listTestInquiries } from "@/lib/crm/inquiries";
-import { InquiryWorkspace } from "./inquiry-workspace";
+import {
+  InvalidSubmissionList,
+  listAssessmentSubmissions,
+} from "@/lib/crm/submissions";
 import { StaffAccessRequired } from "./staff-access-required";
+import { SubmissionList } from "./submissions/submission-list";
+import { SubmissionListError } from "./submissions/list-error";
 
 export const metadata = {
-  title: "Inquiries",
+  title: "Assessment Submissions",
   robots: "noindex, nofollow",
 };
 
-export default function CrmPage() {
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function CrmPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
   return (
     <Suspense
       fallback={
         <p role="status" className="text-sm text-muted-foreground">
-          Loading inquiries…
+          Loading Assessment Submissions…
         </p>
       }
     >
-      <CrmContent />
+      <CrmContent searchParams={searchParams} />
     </Suspense>
   );
 }
 
-async function CrmContent() {
+async function CrmContent({ searchParams }: { searchParams: SearchParams }) {
   const staff = await staffUser();
   if (!staff) return <StaffAccessRequired />;
-  const inquiries = await listTestInquiries();
+  const { environment, cursor } = await searchParams;
+  let page;
+  try {
+    page = await listAssessmentSubmissions({ environment, cursor });
+  } catch (error) {
+    return (
+      <SubmissionListError
+        invalid={error instanceof InvalidSubmissionList}
+        basePath="/crm"
+      />
+    );
+  }
   return (
-    <InquiryWorkspace
-      inquiryId={randomUUID()}
-      staffEmail={staff.email}
-      inquiries={inquiries.map(
-        ({
-          id,
-          recipient,
-          createdAt,
-          jobStatus,
-          emailId,
-          smsStatus,
-          lastError,
-          updatedAt,
-          sms,
-          workflow,
-        }) => ({
-          id,
-          recipient,
-          createdAt: createdAt.toISOString(),
-          jobStatus,
-          emailId,
-          smsStatus,
-          lastError,
-          updatedAt: updatedAt.toISOString(),
-          workflow,
-          sms: sms && {
-            recipient: sms.recipient,
-            message: sms.message,
-            simulatedAt: sms.simulatedAt.toISOString(),
-          },
-        }),
-      )}
-    />
+    <div className="space-y-2">
+      <h1 className="text-2xl font-semibold tracking-tight">
+        Assessment Submissions
+      </h1>
+      <p className="text-sm text-muted-foreground">
+        Saved website assessments across People. Open a submission to read its
+        contact details, answers, and consent.
+      </p>
+      <SubmissionList
+        page={page}
+        basePath="/crm"
+        liveOnly={environment === "live"}
+        hasCursor={cursor !== undefined}
+        showPersonLink
+      />
+    </div>
   );
 }

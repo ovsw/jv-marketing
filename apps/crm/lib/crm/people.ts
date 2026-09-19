@@ -12,6 +12,7 @@ import {
   people,
 } from "@/db/schema";
 import { requireStaff } from "./auth";
+import { listAssessmentSubmissions } from "./submissions";
 
 function submissionCount(environment: "test" | "live") {
   return sql<number>`count(*) filter (where ${assessmentSubmissions.environment} = ${environment})`.mapWith(
@@ -70,7 +71,10 @@ export async function listPeople() {
     .orderBy(desc(lastReceivedAt));
 }
 
-export async function getPersonWithAssessmentSubmissions(personId: string) {
+export async function getPersonWithAssessmentSubmissions(
+  personId: string,
+  filters: { environment?: unknown; cursor?: unknown } = {},
+) {
   await requireStaff();
   if (!z.uuid().safeParse(personId).success) return null;
   const db = database();
@@ -82,24 +86,6 @@ export async function getPersonWithAssessmentSubmissions(personId: string) {
 
   if (!person) return null;
 
-  const submissions = await db
-    .select({
-      id: assessmentSubmissions.id,
-      environment: assessmentSubmissions.environment,
-      assessmentVersion: assessmentSubmissions.assessmentVersion,
-      answers: assessmentSubmissions.answers,
-      reportedScore: assessmentSubmissions.reportedScore,
-      actionPlan: assessmentSubmissions.actionPlan,
-      receivedAt: assessmentSubmissions.receivedAt,
-      originBrand: intakeCallers.brand,
-    })
-    .from(assessmentSubmissions)
-    .innerJoin(
-      intakeCallers,
-      eq(assessmentSubmissions.intakeCallerId, intakeCallers.id),
-    )
-    .where(eq(assessmentSubmissions.personId, personId))
-    .orderBy(desc(assessmentSubmissions.receivedAt));
-
-  return { person, submissions };
+  const page = await listAssessmentSubmissions({ ...filters, personId });
+  return { person, submissions: page.items, nextCursor: page.nextCursor };
 }

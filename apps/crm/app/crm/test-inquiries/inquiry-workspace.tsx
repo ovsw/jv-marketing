@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/sheet";
 import type { Workflow } from "@/lib/crm/workflow";
 import { DeleteForm } from "./delete-form";
-import { RefreshButton } from "./refresh-button";
+import { RefreshButton } from "../refresh-button";
 import { TestForm } from "./test-form";
 
 export type InquiryRow = {
@@ -269,7 +269,7 @@ export function InquiryWorkspace({
             <span className="size-1.5 rounded-full bg-amber-500" /> Test
             workspace
           </div>
-          <h1 className="text-3xl font-semibold tracking-tight">Inquiries</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">Test inquiries</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Track requests and check each confirmation.
           </p>
