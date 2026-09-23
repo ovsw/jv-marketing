@@ -222,12 +222,17 @@ The blueprint currently holds:
   it. Production also sets `waitFor="function"` on `<SanityLive />`, so
   Sanity holds the live event until the site has been told.
 
-Secrets are set on the deployed function, not in the blueprint:
+Secrets are set on the deployed function, not in the blueprint. Put the two
+values in shell variables first (the same `SANITY_REVALIDATE_TAGS_SECRET` the
+Vercel project holds, and the Vercel project's "Protection Bypass for
+Automation" secret), then pass each as one quoted argument:
 
 ```bash
-pnpm exec sanity functions env add invalidate-cache-production REVALIDATE_TAGS_SECRET <same value as SANITY_REVALIDATE_TAGS_SECRET in Vercel>
-pnpm exec sanity functions env add invalidate-cache-development REVALIDATE_TAGS_SECRET <same value>
-pnpm exec sanity functions env add invalidate-cache-development VERCEL_PROTECTION_BYPASS <Vercel "Protection Bypass for Automation" secret>
+REVALIDATE_TAGS_SECRET='...'   # same value as SANITY_REVALIDATE_TAGS_SECRET in Vercel
+VERCEL_PROTECTION_BYPASS='...' # Vercel project settings → Deployment Protection
+pnpm exec sanity functions env add invalidate-cache-production REVALIDATE_TAGS_SECRET "$REVALIDATE_TAGS_SECRET"
+pnpm exec sanity functions env add invalidate-cache-development REVALIDATE_TAGS_SECRET "$REVALIDATE_TAGS_SECRET"
+pnpm exec sanity functions env add invalidate-cache-development VERCEL_PROTECTION_BYPASS "$VERCEL_PROTECTION_BYPASS"
 ```
 
 The Preview site sits behind Vercel Authentication, which is why the

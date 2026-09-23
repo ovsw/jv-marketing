@@ -10,14 +10,23 @@ import { buildRevalidateRequest } from "./model.ts";
  *
  * `done` must always run: with `waitFor="function"` on `<SanityLive />`,
  * Sanity holds the live event back until this function reports completion.
+ * If the website could not be told, `done` still runs so the event reaches
+ * connected browsers, whose own `<SanityLive />` action then revalidates;
+ * withholding `done` would block that fallback for every visitor.
  */
+
+/** Leaves room inside the 30s function timeout for `done` and its logging. */
+const WEBSITE_REQUEST_TIMEOUT_MS = 20_000;
 export const handler = syncTagInvalidateEventHandler(
   async ({ event, done }) => {
     const { syncTags } = event.data;
 
     try {
       const request = buildRevalidateRequest(process.env, syncTags);
-      const response = await fetch(request.url, request.init);
+      const response = await fetch(request.url, {
+        ...request.init,
+        signal: AbortSignal.timeout(WEBSITE_REQUEST_TIMEOUT_MS),
+      });
       if (response.ok) {
         console.info(
           `Revalidated ${syncTags.length} sync tags at ${request.url} (HTTP ${response.status})`,

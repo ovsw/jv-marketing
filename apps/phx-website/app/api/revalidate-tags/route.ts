@@ -9,8 +9,11 @@ import { revalidateTag } from "next/cache";
  * keeps cached pages fresh when nobody is watching.
  *
  * `sanityFetch` from `defineLive` tags every cached read with `sanity:<tag>`,
- * so the same prefix is added here. `revalidateTag(tag, "max")` serves the
- * stale page once while the fresh one renders in the background.
+ * so the same prefix is added here. The tags expire immediately: production
+ * sets `waitFor="function"` on `<SanityLive />`, and Sanity only releases the
+ * live event once this function has run, so the next request must already
+ * render fresh content. Next.js documents `{ expire: 0 }` for exactly this
+ * webhook case; the "max" profile would serve the stale page one more time.
  */
 export async function POST(request: Request) {
   const expectedSecret = process.env.SANITY_REVALIDATE_TAGS_SECRET;
@@ -53,7 +56,7 @@ export async function POST(request: Request) {
   }
 
   for (const tag of tags) {
-    revalidateTag(`sanity:${tag}`, "max");
+    revalidateTag(`sanity:${tag}`, { expire: 0 });
   }
 
   return Response.json({ revalidated: tags });

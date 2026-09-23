@@ -61,7 +61,7 @@ describe("revalidate-tags route", () => {
     expect(revalidateTag).not.toHaveBeenCalled();
   });
 
-  it("marks every sync tag stale with the sanity prefix", async () => {
+  it("expires every sync tag immediately with the sanity prefix", async () => {
     const response = await POST(request({ bearer: secret }));
 
     expect(response.status).toBe(200);
@@ -69,7 +69,7 @@ describe("revalidate-tags route", () => {
       revalidated: ["s1:abc", "s1:def"],
     });
     expect(revalidateTag).toHaveBeenCalledTimes(2);
-    expect(revalidateTag).toHaveBeenCalledWith("sanity:s1:abc", "max");
-    expect(revalidateTag).toHaveBeenCalledWith("sanity:s1:def", "max");
+    expect(revalidateTag).toHaveBeenCalledWith("sanity:s1:abc", { expire: 0 });
+    expect(revalidateTag).toHaveBeenCalledWith("sanity:s1:def", { expire: 0 });
   });
 });
