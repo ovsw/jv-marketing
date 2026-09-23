@@ -334,6 +334,12 @@ All environment variables and their descriptions:
 - `NEXT_PUBLIC_SANITY_PROJECT_ID` - your Sanity project ID. For example, abc12345.
 - `NEXT_PUBLIC_SANITY_DATASET` - your Sanity dataset name. For example, production.
 - `SANITY_API_READ_TOKEN` - your Sanity read token for Next.js to fetch data.
+- `SANITY_REVALIDATE_SECRET` - a long random server-only value shared with the
+  Sanity webhook that posts to `/api/revalidate` on every publish, update, or
+  delete. Cached content lives for a year; this webhook is what makes a new
+  blog post appear on listings right after it is published. Set it in Vercel
+  (Production and Preview) and in the webhook under Sanity Manage → API →
+  Webhooks. Without it the route answers 503 and nothing is revalidated.
 - `OG_IMAGE_SECRET` - a required, long random server-only value used to authorize generated sharing images for posts and pages. Local development, previews, and production must each define it. Missing values fail explicitly; there is no development fallback.
 - `RESEND_API_KEY` - your RESEND api key for the newsletter form.
 - `RESEND_AUDIENCE_ID` - your RESEND audience id for the newsletter form to store contacts.

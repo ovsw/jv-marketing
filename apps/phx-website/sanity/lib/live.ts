@@ -7,6 +7,7 @@ import {
 import { cookies, draftMode } from "next/headers";
 import { client } from "./client";
 import { token } from "./token";
+import { sanityContentCacheTag } from "./cache-tag";
 
 export const { sanityFetch, SanityLive } = defineLive({
   client,
@@ -42,6 +43,7 @@ export async function sanityFetchStaticParams<
     params,
     perspective: "published",
     stega: false,
+    tags: [sanityContentCacheTag],
   });
   return { data };
 }
@@ -61,6 +63,7 @@ export async function sanityFetchMetadata<const QueryString extends string>({
     params,
     perspective,
     stega: false,
+    tags: [sanityContentCacheTag],
   });
   return { data };
 }

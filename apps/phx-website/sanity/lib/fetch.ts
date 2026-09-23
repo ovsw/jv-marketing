@@ -1,5 +1,6 @@
 import { type QueryParams } from "next-sanity";
 import { sanityFetch, type DynamicFetchOptions } from "@/sanity/lib/live";
+import { sanityContentCacheTag } from "@/sanity/lib/cache-tag";
 import { PAGE_QUERY, PAGES_SLUGS_QUERY } from "@/sanity/queries/page";
 import { NAVIGATION_QUERY } from "@/sanity/queries/navigation";
 import { SETTINGS_QUERY } from "@/sanity/queries/settings";
@@ -46,7 +47,13 @@ async function fetchCached<QueryResult>({
   query: string;
 } & DynamicFetchOptions): Promise<QueryResult> {
   "use cache";
-  const { data } = await sanityFetch({ query, params, perspective, stega });
+  const { data } = await sanityFetch({
+    query,
+    params,
+    perspective,
+    stega,
+    tags: [sanityContentCacheTag],
+  });
   return data as QueryResult;
 }
 
