@@ -225,9 +225,9 @@ The blueprint currently holds:
 Secrets are set on the deployed function, not in the blueprint:
 
 ```bash
-pnpm exec sanity functions env add invalidate-cache-production --name REVALIDATE_TAGS_SECRET --value <same value as SANITY_REVALIDATE_TAGS_SECRET in Vercel>
-pnpm exec sanity functions env add invalidate-cache-development --name REVALIDATE_TAGS_SECRET --value <same value>
-pnpm exec sanity functions env add invalidate-cache-development --name VERCEL_PROTECTION_BYPASS --value <Vercel "Protection Bypass for Automation" secret>
+pnpm exec sanity functions env add invalidate-cache-production REVALIDATE_TAGS_SECRET <same value as SANITY_REVALIDATE_TAGS_SECRET in Vercel>
+pnpm exec sanity functions env add invalidate-cache-development REVALIDATE_TAGS_SECRET <same value>
+pnpm exec sanity functions env add invalidate-cache-development VERCEL_PROTECTION_BYPASS <Vercel "Protection Bypass for Automation" secret>
 ```
 
 The Preview site sits behind Vercel Authentication, which is why the
