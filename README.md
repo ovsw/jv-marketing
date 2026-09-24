@@ -198,6 +198,45 @@ After the first deploy, set `SANITY_STUDIO_APP_ID` from the CLI output so later 
 #### 4. Production Studio releases
 
 The GitHub `release-gate.yml` workflow checks `develop`, `main`, and pull requests. It does not deploy Studio.
+
+#### 5. Sanity Functions (blueprint)
+
+`apps/phx-studio/sanity.blueprint.ts` declares the Sanity Functions that run on
+Sanity's infrastructure. They are not deployed by CI; deploy them from
+`apps/phx-studio` after changing the blueprint or a function:
+
+```bash
+cd apps/phx-studio
+pnpm exec sanity blueprints deploy
+```
+
+The blueprint currently holds:
+
+- `auto-redirect` proposes a redirect when a page, post, or category slug
+  changes.
+- `invalidate-cache-production` and `invalidate-cache-development` are
+  Sanity's Sync Tag Invalidate Functions. Cached reads in the website live for
+  a year and `<SanityLive />` only hears about a publish while a visitor has a
+  page open, so these functions tell the site which sync tags went stale on
+  every content change. One per dataset, each pointed at the site that reads
+  it. Production also sets `waitFor="function"` on `<SanityLive />`, so
+  Sanity holds the live event until the site has been told.
+
+Secrets are set on the deployed function, not in the blueprint. Put the two
+values in shell variables first (the same `SANITY_REVALIDATE_TAGS_SECRET` the
+Vercel project holds, and the Vercel project's "Protection Bypass for
+Automation" secret), then pass each as one quoted argument:
+
+```bash
+REVALIDATE_TAGS_SECRET='...'   # same value as SANITY_REVALIDATE_TAGS_SECRET in Vercel
+VERCEL_PROTECTION_BYPASS='...' # Vercel project settings → Deployment Protection
+pnpm exec sanity functions env add invalidate-cache-production REVALIDATE_TAGS_SECRET "$REVALIDATE_TAGS_SECRET"
+pnpm exec sanity functions env add invalidate-cache-development REVALIDATE_TAGS_SECRET "$REVALIDATE_TAGS_SECRET"
+pnpm exec sanity functions env add invalidate-cache-development VERCEL_PROTECTION_BYPASS "$VERCEL_PROTECTION_BYPASS"
+```
+
+The Preview site sits behind Vercel Authentication, which is why the
+development function also needs the bypass secret.
 Deploy Studio from `apps/phx-studio/` with the reviewed dataset and the live preview origin:
 
 ```bash
@@ -360,6 +399,12 @@ All environment variables and their descriptions:
 - `NEXT_PUBLIC_SANITY_PROJECT_ID` - your Sanity project ID. For example, abc12345.
 - `NEXT_PUBLIC_SANITY_DATASET` - your Sanity dataset name. For example, production.
 - `SANITY_API_READ_TOKEN` - your Sanity read token for Next.js to fetch data.
+- `SANITY_REVALIDATE_TAGS_SECRET` - a long random server-only value shared with
+  the Sanity Sync Tag Invalidate Function (see
+  [Sanity Functions](#5-sanity-functions-blueprint)). The function posts the
+  stale sync tags to `/api/revalidate-tags`; without this value the route
+  answers 503 and cached pages only refresh when a visitor happens to have a
+  page open at publish time. Set it in Vercel for Production and Preview.
 - `OG_IMAGE_SECRET` - a required, long random server-only value used to authorize generated sharing images for posts and pages. Local development, previews, and production must each define it. Missing values fail explicitly; there is no development fallback.
 - `RESEND_API_KEY` - your RESEND api key for the newsletter form.
 - `RESEND_AUDIENCE_ID` - your RESEND audience id for the newsletter form to store contacts.
