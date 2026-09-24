@@ -181,7 +181,7 @@ Sanity's infrastructure. They are not deployed by CI; deploy them from
 
 ```bash
 cd apps/phx-studio
-pnpm exec sanity blueprints deploy
+SANITY_STUDIO_PROJECT_ID=hv0545v9 pnpm exec sanity blueprints deploy
 ```
 
 The blueprint currently holds:

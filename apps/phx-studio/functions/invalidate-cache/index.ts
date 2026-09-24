@@ -41,7 +41,13 @@ export const handler = syncTagInvalidateEventHandler(
     } finally {
       try {
         const response = await done(syncTags);
-        console.info(`Reported completion to Sanity (HTTP ${response.status})`);
+        if (response.ok) {
+          console.info(`Reported completion to Sanity (HTTP ${response.status})`);
+        } else {
+          console.error(
+            `Sanity refused completion (HTTP ${response.status})`,
+          );
+        }
       } catch (error) {
         console.error("Could not report completion to Sanity", error);
       }
