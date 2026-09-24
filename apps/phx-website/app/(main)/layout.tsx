@@ -22,7 +22,14 @@ export default async function MainLayout({
         <CachedHeader perspective="published" stega={false} />
       )}
       <main>{children}</main>
-      <SanityLive includeDrafts={isDraftMode} />
+      {/*
+        In production a Sync Tag Invalidate Function refreshes the cache
+        server-side; waiting for it means every visitor sees a publish at once.
+      */}
+      <SanityLive
+        includeDrafts={isDraftMode}
+        waitFor={process.env.VERCEL_ENV === "production" ? "function" : undefined}
+      />
       {isDraftMode && (
         <>
           <DisableDraftMode />

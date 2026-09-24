@@ -36,3 +36,7 @@ yarn-error.log*
 next-env.d.ts
 
 /dist
+# Sanity Blueprints local runtime cache; blueprint.config.json is committed so deploys target the same Stack
+.sanity/runtime
+# Bundles produced by `sanity blueprints deploy`
+functions/*/.build
