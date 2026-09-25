@@ -1,0 +1,117 @@
+# Replaces the image's /camunda/configuration/production.yml (CIB seven Run 2.2.0,
+# started with --production). Based on the stock production file; changes:
+# - Modeler enabled, with the JPA settings it needs (copied from the stock default.yml).
+# - "All tasks" Tasklist filter created, as in default.yml.
+# - CORS off: no browser calls the REST API from another origin.
+# - Logs go to stdout only (Railway collects them); no log file in the container.
+# Secrets and the datasource come from environment variables (see README.md).
+
+camunda.bpm:
+  webapp:
+    csrf:
+      enable-same-site-cookie: true
+      same-site-cookie-option: STRICT
+    header-security:
+      hsts-disabled: false
+
+  authorization.enabled: true
+
+  filter:
+    create: All tasks
+
+  cron:
+    type: QUARTZ
+    support-legacy-quartz-syntax: true
+
+  generic-properties.properties:
+    deserialization-type-validation-enabled: true
+    deserialization-allowed-packages:
+    deserialization-allowed-classes:
+    enable-password-policy: true
+    useCibSevenNamespaceInScripting: false
+    useCibSevenNamespaceInReflection: false
+
+  run:
+    auth:
+      enabled: true
+      authentication: composite
+    cors:
+      enabled: false
+    rest.disable-wadl: true
+    deployment.deploy-changed-only: true
+    example:
+      enabled: false
+
+server:
+  servlet.session.cookie:
+    secure: true
+    http-only: true
+
+logging:
+  level.root: INFO
+
+spring:
+  config:
+    import:
+      - optional:classpath:cibseven-webclient.properties
+      - optional:classpath:cibseven-webclient.yaml
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: none
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+      id:
+        new_generator_mappings: true
+    properties:
+      hibernate:
+        integration:
+          envers:
+            enabled: false
+  web.resources:
+    static-locations: NULL
+
+cibseven:
+  webclient:
+    modeler:
+      enabled: true
+      templates:
+        paths:
+          - "classpath*:element-templates/*.json"
+          - "file:configuration/element-templates/*.json"
+    engineRest:
+      url: http://localhost:8080
+      path: /engine-rest
+    historyLevel: full
+    authentication:
+      jwtSecret:
+      tokenValidMinutes: 60
+      tokenProlongMinutes: 1440
+    bpm:
+      provider: org.cibseven.webapp.providers.SevenProvider
+    user:
+      provider: org.cibseven.webapp.auth.SevenUserProvider
+    fetchInstances: true
+    fetchIncidents: true
+    token:
+      secret:
+      deny:
+        external:
+          ip: true
+    datasource:
+      fileValue:
+        enabled: false
+    cockpit:
+      url: /camunda/app/cockpit/default/
+    theme: cib
+    services:
+      basePath: services/v1
+
+springdoc:
+  api-docs:
+    path: /webapp/v3/api-docs
+  swagger-ui:
+    path: /webapp/swagger-ui
+    operationsSorter: alpha
+    tagsSorter: alpha
+    doc-expansion: none

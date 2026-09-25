@@ -1,0 +1,20 @@
+{
+  "name": "automation-engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "smoke": "node --env-file=.env.development.local scripts/smoke.ts",
+    "bootstrap": "node --env-file=.env.development.local scripts/bootstrap-machine-users.ts",
+    "park": "node --env-file=.env.development.local scripts/dev-stack.ts park",
+    "unpark": "node --env-file=.env.development.local scripts/dev-stack.ts unpark",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.0",
+    "typescript": "^6.0.3"
+  }
+}
