@@ -82,5 +82,14 @@ Rotate every 90 days and on any staff change.
   hung engine belongs to the monitoring work in #158.
 - Neon is not on CIB seven's list of tested databases. The first boot on the
   development branch is the compatibility test.
+- On the first boot against an empty database the Modeler looks for its table
+  before the engine creates it, waits 60 seconds, and starts without element
+  templates. Later boots find the table at once.
+- The start script logs "created with random jwtSecret" on every boot. The
+  engine reads `CIBSEVEN_WEBCLIENT_AUTHENTICATION_JWTSECRET` first, so that
+  file is not used.
 - Drill results (restart with a pending timer, killed process, park and
-  unpark) are recorded as dated comments on #149.
+  unpark) are recorded as dated comments on #149. To kill the process, use a
+  temporary SSH key: `railway ssh keys add` (from an agent), `railway ssh config
+  --path <temp file> -i <key>`, `ssh -F <temp file> … kill -9 <java pid>`, then
+  `railway ssh keys remove` and delete the key.
