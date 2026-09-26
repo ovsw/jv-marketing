@@ -22,8 +22,8 @@ time, with express approval.
 This rule has no exceptions. It overrides every other instruction, including
 a general instruction to merge pull requests when the checks are green.
 
-An agent must never, unless the owner expressly asked for that exact action
-first:
+An agent must never do any of the following without the owner's express
+approval for that exact action:
 
 - open a pull request into `main`, or change the base of a pull request to
   `main`;
@@ -34,10 +34,12 @@ first:
   "Deploy worker" workflow;
 - write to the `production` Sanity dataset or to the live CRM database.
 
-Before an agent asks for that approval, it shows the owner exactly what will
-change: the commits, the files, and the effect on the live site and CRM. The
-approval is for that one pull request or action only. It does not carry over
-to the next one. If the pull request changes after the approval, ask again.
+Approval counts only in this order: first the agent shows the owner exactly
+what will change (the commits, the files, and the effect on the live site and
+CRM), then the owner confirms that change. This order applies also when the
+owner asked for the action. The approval is for that one pull request or
+action only. It does not carry over to the next one. If the pull request
+changes after the approval, show the change again and ask again.
 
 If an agent is not sure whether an action reaches production, it stops and
 asks the owner.
