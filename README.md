@@ -325,13 +325,19 @@ pnpm test
 pnpm test:smoke
 ```
 
-The full test suite is `pnpm test` **and** `pnpm test:smoke`. `pnpm test` runs
-only unit and Node tests. `pnpm test:smoke` runs the real-browser smoke tests in
-headless Google Chrome (the PHX website footer and the CRM `/crm` route). The
-required GitHub "Release gate" runs both, so a result reported after
-`pnpm test` alone is not a full-suite result.
+`pnpm test` runs only unit and Node tests. `pnpm test:smoke` runs the
+real-browser smoke tests in headless Google Chrome (the PHX website footer and
+the CRM `/crm` route). The required GitHub "Release gate" runs the affected
+checks and the smoke tests against each pull request's Vercel preview, so a
+full-suite result is the local affected checks plus a green Release gate.
+Before pushing, run the checks for what changed:
 
-Locally, `pnpm test:smoke` builds and serves each app itself. The CRM smoke test
+```bash
+TURBO_SCM_BASE=origin/develop pnpm turbo run typecheck lint test --affected
+```
+
+Locally, `pnpm test:smoke` builds and serves each app itself, which takes
+minutes. Use it to debug a smoke failure or after changing an `e2e/` file. The CRM smoke test
 first runs `pnpm --dir apps/crm check:env`, which fails fast when
 `CLERK_SECRET_KEY` or `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is missing, malformed,
 or the `[SENSITIVE]` placeholder that `vercel env pull` writes for Sensitive
