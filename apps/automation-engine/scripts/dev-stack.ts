@@ -12,13 +12,14 @@ import { requiredEnv } from "./engine-rest.ts";
 
 const ENVIRONMENT = "development";
 const ENGINE_READY_WAIT_MS = 10 * 60_000;
-const repoRoot = fileURLToPath(new URL("../../..", import.meta.url));
-const engine = { service: "automation-engine", dir: "apps/automation-engine" };
-const worker = { service: "automation-worker", dir: "apps/automation-worker" };
+// Railway reads the project link from this app folder.
+const appDir = fileURLToPath(new URL("..", import.meta.url));
+const engine = { service: "automation-engine", dir: "." };
+const worker = { service: "automation-worker", dir: "../automation-worker" };
 
 function railway(args: string[]) {
   console.log(`$ railway ${args.join(" ")}`);
-  const result = spawnSync("railway", args, { cwd: repoRoot, stdio: "inherit" });
+  const result = spawnSync("railway", args, { cwd: appDir, stdio: "inherit" });
   if (result.status !== 0) throw new Error(`railway ${args[0]} failed (exit ${result.status})`);
 }
 
@@ -44,7 +45,7 @@ async function main() {
       railway(["up", dir, "--path-as-root", "--service", service, "--environment", ENVIRONMENT, "--ci"]);
     }
     await waitForEngine(requiredEnv("ENGINE_URL"));
-    console.log("✓ development engine and Worker running; run pnpm automation:smoke to check");
+    console.log("✓ development engine and Worker running; run pnpm smoke to check");
   } else {
     throw new Error("Usage: dev-stack.ts park|unpark");
   }

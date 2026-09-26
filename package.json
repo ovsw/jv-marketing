@@ -31,14 +31,9 @@
     "db:generate:crm": "pnpm --dir apps/crm db:generate",
     "db:migrate:crm-preview": "pnpm --dir apps/crm db:migrate:preview",
     "db:backup:crm-preview": "pnpm --dir apps/crm db:backup:preview",
-    "export": "pnpm --dir apps/phx-studio exec sanity dataset export production sample-data.tar.gz",
-    "automation:smoke": "pnpm --dir apps/automation-engine smoke",
-    "automation:bootstrap": "pnpm --dir apps/automation-engine bootstrap",
-    "automation:park": "pnpm --dir apps/automation-engine park",
-    "automation:unpark": "pnpm --dir apps/automation-engine unpark"
+    "export": "pnpm --dir apps/phx-studio exec sanity dataset export production sample-data.tar.gz"
   },
   "devDependencies": {
-    "railway": "3.11.0",
     "turbo": "^2.10.13"
   },
   "packageManager": "pnpm@11.10.0+sha512.0b7f8b98060031904c017e3a41eb187a16d40eeb829b95c4f8cb03681761fc4ab53dd219115b9b447f4dce1a05a214764461e7d3703392a9f32f9511ce8c86c8",

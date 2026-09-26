@@ -151,16 +151,24 @@ Two long-lived branches exist. Feature branches are short-lived.
   feature, fix, docs, and content branch starts from `develop` and opens its
   pull request against `develop`. Pull request previews use the Preview
   environment, so they read `development` and talk to the test Intake Caller.
+- `main` is production. Only the owner decides what reaches `main`, by hand,
+  each time. Agents follow the hard rule in `AGENTS.md` and `CLAUDE.md`: no
+  pull request into `main`, no merge, no push, and no production deploy
+  without the owner's express approval for that exact change.
 - Both branches are protected: pull requests only, no force pushes, and the
   "Release gate" check must pass. The gate also rejects any pull request into
-  `main` whose head branch is not `develop`.
+  `main` whose head branch is not `develop` or `hotfix/*` in this repository.
 - A release is one pull request from `develop` into `main`, opened and merged
   by the owner. Before merging, promote the reviewed content from the
   `development` dataset to `production`, because the live site reads
   `production` and a code change that depends on new content would otherwise
   ship without it.
+- A hotfix is a `hotfix/<name>` branch started from `main` and merged into
+  `main` by the owner. Merge `main` back into `develop` right after, so
+  `develop` keeps the fix.
 - The Trigger.dev worker for the CRM deploys from `main` only, through
-  `deploy-crm-worker.yml`. Preview and test flows use the preview database.
+  `deploy-crm-worker.yml`; a manual run from any other branch does nothing.
+  Preview and test flows use the preview database.
 - The persistent Preview domain is assigned to the `develop` git branch in the
   Vercel project settings. If the branch is renamed, reassign the domain.
 
