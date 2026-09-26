@@ -69,6 +69,14 @@ asks the owner.
   than `develop` or `hotfix/*` in this repository. The gate cannot tell an
   agent from the owner, so the hard rule above is what stops an agent.
 
+## Pull request flow
+
+- Wait for the "Release gate" check only. It is the one required check. When
+  it is green, and the one CodeRabbit review is answered if the change was
+  routed to one, the pull request is ready to merge into `develop`.
+- Merge a green pull request before you start new work. Put new work on a new
+  branch from `develop`, in its own pull request.
+
 ## Build only what changed
 
 Vercel builds the website and the CRM only when a commit affects that app.
@@ -126,10 +134,13 @@ exactly what makes handing off write access dangerous.
 ## Testing
 - Prefer focused functional/accessibility checks and one-time visual inspection;
 - DO NOT create or maintain screenshot baselines unless explicitly requested.
-- The full test suite is `pnpm test` **and** `pnpm test:smoke`. `pnpm test`
-  runs unit and Node tests only. `pnpm test:smoke` runs the real-browser smoke
-  tests (headless Google Chrome) that the required "Release gate" also runs.
-  Never report "full suite passed" after `pnpm test` alone.
+- Before you push, run the checks for what you changed:
+  `TURBO_SCM_BASE=origin/develop pnpm turbo run typecheck lint test --affected`.
+- The browser smoke tests (`pnpm test:smoke`, headless Google Chrome) run in
+  the Release gate against the pull request's Vercel preview. Run them
+  locally only to debug a smoke failure or after you change an `e2e/` file.
+- "Full suite passed" means both: the local affected checks passed, and the
+  Release gate is green on the pull request.
 - HTTP-only checks (`curl`, Playwright's `request` fixture) do not run Clerk's
   browser handshake. A CRM route can return 500 in a browser while every
   HTTP-only test passes. Use the `page` fixture for CRM smoke coverage.
