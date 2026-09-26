@@ -4,6 +4,12 @@
 //
 // Secret values never live here: preserve() keeps what the setup wizard set.
 // Per-environment connection values (DB_URL, DB_USERNAME) are preserved too.
+//
+// Restart policy: Railway's default (ON_FAILURE, 10 retries) is the one we
+// want. Railway does not store a value equal to the default, so declaring it
+// here shows as a change on every plan; it is left out on purpose. The same
+// holds for the builder: each app has a Dockerfile at its root, which Railway
+// uses on its own.
 
 import { defineRailway, preserve, project, service } from "railway/iac";
 
@@ -12,10 +18,6 @@ export default defineRailway(() => {
     healthcheck: "/engine-rest/engine",
     healthcheckTimeout: 300,
     replicas: { "us-west2": 1 },
-    deploy: {
-      restartPolicyType: "ON_FAILURE",
-      restartPolicyMaxRetries: 10,
-    },
     env: {
       PORT: "8080",
       TZ: "UTC",
@@ -33,10 +35,6 @@ export default defineRailway(() => {
 
   const worker = service("automation-worker", {
     replicas: { "us-west2": 1 },
-    deploy: {
-      restartPolicyType: "ON_FAILURE",
-      restartPolicyMaxRetries: 10,
-    },
     env: {
       ENGINE_REST_URL: "http://automation-engine.railway.internal:8080/engine-rest",
       ENGINE_WORKER_USER: "worker",
@@ -44,5 +42,5 @@ export default defineRailway(() => {
     },
   });
 
-  return project("vercellino-automation", { resources: [engine, worker] });
+  return project("jv-automation", { resources: [engine, worker] });
 });

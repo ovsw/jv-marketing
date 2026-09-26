@@ -10,9 +10,9 @@ commands. It has no business code. The Worker lives in `apps/automation-worker`.
 
 | Piece | Where | Notes |
 | --- | --- | --- |
-| Engine (`automation-engine`) | Railway project `vercellino-automation`, US West | One replica. Health check `/engine-rest/engine` at deploy time. Restart on failure, 10 retries. |
+| Engine (`automation-engine`) | Railway project `jv-automation`, US West | One replica. Health check `/engine-rest/engine` at deploy time. Restart on failure, 10 retries. |
 | Worker (`automation-worker`) | Same project | Reaches the engine over the private network: `http://automation-engine.railway.internal:8080/engine-rest`. |
-| Engine database | Neon organization "Vercellino Automation", project `automation` (AWS us-west-2, Oregon), Launch plan | One branch per environment, database `engine`, one role per environment. Direct (non-pooled) endpoint over TLS. |
+| Engine database | Neon organization "JV Automation", project `automation` (`green-star-37476368`, AWS us-west-2, Oregon, Postgres 17), Launch plan | One branch per environment, database `engine` owned by one role per environment. Direct (non-pooled) endpoint over TLS. Branch `development`: 0.25–1 CU, suspends after 5 idle minutes. |
 
 Environments: `development` only so far. Staging and production follow in #153 and #156.
 
@@ -31,7 +31,7 @@ with `preserve()`.
 Run from the repository root. They read `apps/automation-engine/.env.development.local`
 (written by the setup wizard, gitignored; keys listed in `.env.development.example`).
 The Railway and Neon CLIs must be logged in, and the repository root linked:
-`railway link --project vercellino-automation --environment development`.
+`railway link --project jv-automation --environment development`.
 
 | Command | What it does |
 | --- | --- |
@@ -73,7 +73,7 @@ Rotate every 90 days and on any staff change.
 | Engine machine login `ops` | Smoke and promote commands | Ovi | Password manager; local env file (`ENGINE_OPS_*`) | New value in the env file, run `pnpm automation:bootstrap`. |
 | Engine machine login `worker` | Worker | Ovi | Railway `automation-worker` → `ENGINE_WORKER_PASSWORD`; password manager; local env file | New value in Railway and the env file, run `pnpm automation:bootstrap`, redeploy the Worker. |
 | Railway CLI login | Ovi's machine | Ovi | `~/.railway/config.json` | `railway logout`, `railway login`. |
-| Neon CLI login | Ovi's machine | Ovi | `~/.config/neonctl/` | `neonctl auth`. |
+| Neon CLI login | Ovi's machine | Ovi | `~/.config/neon/` | `neonctl auth`. |
 
 ## Known limits
 
