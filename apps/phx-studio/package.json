@@ -19,7 +19,7 @@
     "@portabletext/react": "^6.2.0",
     "@sanity/code-input": "^7.2.5",
     "@sanity/functions": "^1.8.0",
-    "@sanity/icons": "^5.0.0",
+    "@sanity/icons": "^5.2.2",
     "@sanity/image-url": "^2.1.1",
     "@sanity/preview-url-secret": "^4.0.8",
     "@sanity/table": "3.1.12",
