@@ -69,6 +69,36 @@ asks the owner.
   than `develop` or `hotfix/*` in this repository. The gate cannot tell an
   agent from the owner, so the hard rule above is what stops an agent.
 
+## Build only what changed
+
+Vercel builds the website and the CRM only when a commit affects that app.
+(`npx turbo-ignore` compares the commit with the app's last deployment on the
+branch.) An app is affected when:
+
+- its own files change;
+- a workspace package that it uses changes, for example `packages/assessment`;
+- `turbo.json`, `shared/**`, or `scripts/**` change;
+- the lockfile changes a package in its dependency tree.
+
+Rules:
+
+- Put an app's scripts, tools, and dependencies in that app's own
+  `package.json` and folder, not in the root.
+- Before you push a change to `pnpm-lock.yaml`, list the apps it affects:
+
+  ```bash
+  TURBO_SCM_BASE=origin/develop pnpm -s turbo run build --affected --dry=json | jq -r '.tasks[].package' | sort -u
+  ```
+
+  If the list shows an app that you did not change (`frontend`, `crm`,
+  `studio`), the lockfile moved a package that this app uses. Find it in the
+  lockfile diff. Remove that part, or put it in its own pull request and say
+  why.
+- Keep a pull request inside one app when you can.
+- Do not switch to Vercel's built-in "skip unaffected projects". It compares
+  each commit only with its parent, so a push of several commits can skip an
+  app that changed.
+
 ## Shell discipline and reporting observations
 
 The Bash tool's working directory **persists between calls**. A `cd` in one

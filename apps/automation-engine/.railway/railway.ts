@@ -1,6 +1,6 @@
 // Railway settings for the automation stack (spec #148): the CIB seven engine
 // and the Worker. Apply with `railway config plan` / `railway config apply`
-// from the repository root; see apps/automation-engine/README.md.
+// from apps/automation-engine; see the README there.
 //
 // Secret values never live here: preserve() keeps what the setup wizard set.
 // Per-environment connection values (DB_URL, DB_USERNAME) are preserved too.

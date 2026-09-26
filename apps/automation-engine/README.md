@@ -23,24 +23,28 @@ checks and the password policy are on, the REST API needs a login
 are off, and the Modeler is on. The AI agent is off (`AI_AGENT_ENABLED=false`).
 
 Railway service settings and non-secret variables are in `.railway/railway.ts`
-at the repository root. Secret values are never in Git; the file keeps them
+in this folder. Secret values are never in Git; the file keeps them
 with `preserve()`.
 
 ## Commands
 
-Run from the repository root. They read `apps/automation-engine/.env.development.local`
+Run from this folder (`apps/automation-engine`). They read `.env.development.local`
 (written by the setup wizard, gitignored; keys listed in `.env.development.example`).
-The Railway and Neon CLIs must be logged in, and the repository root linked:
+The Railway and Neon CLIs must be logged in, and this folder linked:
 `railway link --project jv-automation --environment development`.
+
+Everything for the automation stack stays in this folder and in
+`apps/automation-worker`, not in the repository root. A change to the root
+`package.json` makes Vercel rebuild the website and the CRM.
 
 | Command | What it does |
 | --- | --- |
 | `railway config plan` / `railway config apply` | Show / apply the service settings in `.railway/railway.ts` to the linked environment. |
-| `pnpm automation:unpark` | Deploy the engine and the Worker to development from this checkout; wait until the engine answers. |
-| `pnpm automation:park` | Remove the development deployments. Services and variables stay; the Neon compute scales to zero by itself after 5 idle minutes. |
-| `pnpm automation:bootstrap` | Create or update the machine logins `ops` and `worker` with the admin login. Run after the first boot and after changing a machine password. |
-| `pnpm automation:smoke` | End-to-end check: deploy the test process, start it with a fake Person ID, Worker completes the external task, complete the user task, timer fires, instance ends. |
-| `pnpm automation:smoke --timer PT3M --hold` then `--resume <id>` | Restart drill: hold an instance with the timer pending and the user task open, restart the engine, then finish it. |
+| `pnpm unpark` | Deploy the engine and the Worker to development from this checkout; wait until the engine answers. |
+| `pnpm park` | Remove the development deployments. Services and variables stay; the Neon compute scales to zero by itself after 5 idle minutes. |
+| `pnpm bootstrap` | Create or update the machine logins `ops` and `worker` with the admin login. Run after the first boot and after changing a machine password. |
+| `pnpm smoke` | End-to-end check: deploy the test process, start it with a fake Person ID, Worker completes the external task, complete the user task, timer fires, instance ends. |
+| `pnpm smoke --timer PT3M --hold` then `--resume <id>` | Restart drill: hold an instance with the timer pending and the user task open, restart the engine, then finish it. |
 
 Until the Cloudflare Access seam exists (#151), `ENGINE_URL` is the
 Railway-generated domain and the smoke command uses the `ops` machine login.
@@ -56,9 +60,9 @@ Railway-generated domain and the smoke command uses the `ops` machine login.
    password manager and writes it to Railway. Every secret must be set
    **before the first boot**: the admin login is created only on first start,
    and without it the engine writes the well-known `demo` login.
-4. Deploy (`pnpm automation:unpark` for development), generate the public
+4. Deploy (`pnpm unpark` for development), generate the public
    domain (`railway domain --service automation-engine`), then run
-   `pnpm automation:bootstrap` and `pnpm automation:smoke`.
+   `pnpm bootstrap` and `pnpm smoke`.
 
 ## Credentials inventory
 
@@ -68,10 +72,10 @@ Rotate every 90 days and on any staff change.
 | Credential | Used by | Owner | Stored in | How to rotate |
 | --- | --- | --- | --- | --- |
 | Neon role `engine_development` password | Engine (development) | Ovi | Railway `automation-engine` → `DB_PASSWORD`; password manager; Neon console | Reset the role password in Neon, rerun the wizard's database stage, redeploy the engine. |
-| Engine admin login `ovi` | Ovi; `automation:bootstrap` | Ovi | Password manager; local env file (`ENGINE_ADMIN_*`); Railway `CAMUNDA_BPM_ADMINUSER_*` (read on first boot only) | Change it in the webclient Admin, then update the password manager and the local env file. Changing the Railway variable later has no effect. |
+| Engine admin login `ovi` | Ovi; `pnpm bootstrap` | Ovi | Password manager; local env file (`ENGINE_ADMIN_*`); Railway `CAMUNDA_BPM_ADMINUSER_*` (read on first boot only) | Change it in the webclient Admin, then update the password manager and the local env file. Changing the Railway variable later has no effect. |
 | Webclient token secret | Engine | Ovi | Railway `automation-engine` → `CIBSEVEN_WEBCLIENT_AUTHENTICATION_JWTSECRET`; password manager | New value in Railway, redeploy. Signs everyone out. |
-| Engine machine login `ops` | Smoke and promote commands | Ovi | Password manager; local env file (`ENGINE_OPS_*`) | New value in the env file, run `pnpm automation:bootstrap`. |
-| Engine machine login `worker` | Worker | Ovi | Railway `automation-worker` → `ENGINE_WORKER_PASSWORD`; password manager; local env file | New value in Railway and the env file, run `pnpm automation:bootstrap`, redeploy the Worker. |
+| Engine machine login `ops` | Smoke and promote commands | Ovi | Password manager; local env file (`ENGINE_OPS_*`) | New value in the env file, run `pnpm bootstrap`. |
+| Engine machine login `worker` | Worker | Ovi | Railway `automation-worker` → `ENGINE_WORKER_PASSWORD`; password manager; local env file | New value in Railway and the env file, run `pnpm bootstrap`, redeploy the Worker. |
 | Railway CLI login | Ovi's machine | Ovi | `~/.railway/config.json` | `railway logout`, `railway login`. |
 | Neon CLI login | Ovi's machine | Ovi | `~/.config/neon/` | `neonctl auth`. |
 

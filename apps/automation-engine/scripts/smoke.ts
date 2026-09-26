@@ -2,9 +2,9 @@
 // start it with a fake Person ID, see the Worker complete its external task,
 // complete the user task, see the timer fire and the instance end.
 //
-//   pnpm automation:smoke                     full run (timer PT5S)
-//   pnpm automation:smoke --timer PT3M --hold stop with the timer pending and the user task open
-//   pnpm automation:smoke --resume <id>       finish a held instance (after an engine restart)
+//   pnpm smoke                     full run (timer PT5S)
+//   pnpm smoke --timer PT3M --hold stop with the timer pending and the user task open
+//   pnpm smoke --resume <id>       finish a held instance (after an engine restart)
 
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
@@ -113,7 +113,7 @@ async function main() {
 
   if (args.hold) {
     console.log(`\nInstance ${instance.id} is held: timer ${args.timer} pending, user task open.`);
-    console.log(`Restart the engine, then run: pnpm automation:smoke --resume ${instance.id}`);
+    console.log(`Restart the engine, then run: pnpm smoke --resume ${instance.id}`);
     return;
   }
   await finish(instance.id, task.id);
