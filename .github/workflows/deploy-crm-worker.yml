@@ -27,6 +27,8 @@ permissions:
 jobs:
   deploy-worker:
     name: Migrate test database and deploy worker
+    # A manual run can pick any branch; production deploys come from main only.
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:

@@ -2,8 +2,9 @@ name: Release gate
 
 # `develop` is the integration branch and deploys to the persistent Vercel
 # Preview at phxhomeloancom-dev.vercel.app. `main` is the live site. Only a
-# pull request from `develop` may merge into `main`; the `source` lane below
-# enforces that so a feature branch can never reach production by mistake.
+# pull request from `develop` (a release) or `hotfix/*` (a hotfix) may merge
+# into `main`; the `source` lane below enforces that so a feature branch can
+# never reach production by mistake. The owner alone opens and merges them.
 on:
   pull_request:
     branches: [main, develop]
@@ -36,11 +37,11 @@ env:
 jobs:
   source:
     # Always runs so the release-gate job sees "success" rather than "skipped".
-    name: Only develop may merge into main
+    name: Only develop or hotfix/* may merge into main
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - name: Reject pull requests into main from any branch except develop
+      - name: Reject pull requests into main from any branch except develop or hotfix/*
         env:
           EVENT: ${{ github.event_name }}
           BASE: ${{ github.event.pull_request.base.ref }}
@@ -49,9 +50,13 @@ jobs:
           THIS_REPO: ${{ github.repository }}
         run: |
           if [ "$EVENT" = "pull_request" ] && [ "$BASE" = "main" ]; then
-            # A fork can also have a branch named develop, so the head repository must match too.
-            if [ "$HEAD" != "develop" ] || [ "$HEAD_REPO" != "$THIS_REPO" ]; then
-              echo "::error::Pull requests into main must come from this repository's develop branch. Retarget this pull request to develop."
+            # A fork can also have these branch names, so the head repository must match too.
+            case "$HEAD" in
+              develop | hotfix/?*) allowed=yes ;;
+              *) allowed=no ;;
+            esac
+            if [ "$allowed" != "yes" ] || [ "$HEAD_REPO" != "$THIS_REPO" ]; then
+              echo "::error::Pull requests into main must come from this repository's develop branch or a hotfix/* branch. Retarget this pull request to develop."
               exit 1
             fi
           fi

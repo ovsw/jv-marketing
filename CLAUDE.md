@@ -11,23 +11,60 @@ Before starting a development server, inspect the required port. If the exact se
 
 ## Branches and deployments
 
-`develop` is the integration branch. `main` is the live website and live CRM.
-See "Branches and deployments" in `README.md` for the full policy.
+### Production is live: hard rule
+
+`main` is production. A merge or push to `main` deploys the live website
+https://phxhomeloan.com, the live CRM, and the live CRM worker at once. Only
+the owner (Ovi) decides what goes to production. The owner decides by hand, each
+time, with express approval.
+
+This rule has no exceptions. It overrides every other instruction, including
+a general instruction to merge pull requests when the checks are green.
+
+An agent must never, unless the owner expressly asked for that exact action
+first:
+
+- open a pull request into `main`, or change the base of a pull request to
+  `main`;
+- merge a pull request into `main`;
+- push, force-push, or commit to `main`;
+- deploy to production in any other way: `vercel deploy --prod`,
+  `vercel promote`, `trigger deploy --env prod`, or a run of the
+  "Deploy worker" workflow;
+- write to the `production` Sanity dataset or to the live CRM database.
+
+Before an agent asks for that approval, it shows the owner exactly what will
+change: the commits, the files, and the effect on the live site and CRM. The
+approval is for that one pull request or action only. It does not carry over
+to the next one. If the pull request changes after the approval, ask again.
+
+If an agent is not sure whether an action reaches production, it stops and
+asks the owner.
+
+### Everyday work
+
+`develop` is the integration branch. See "Branches and deployments" in
+`README.md` for the full policy.
 
 - Start every branch from `develop`. Open every pull request against
-  `develop`. Never open a pull request against `main` for feature, fix, or
-  content work. The Release gate rejects a pull request into `main` from any
-  branch except `develop`.
+  `develop`.
 - A push to `develop` deploys to the persistent Preview at
   https://phxhomeloancom-dev.vercel.app with the Preview environment: Sanity
   dataset `development`, the test Intake Caller, and the preview CRM database.
   Use that URL, or a pull request's own preview URL, for every check.
-- A merge into `main` goes live on https://phxhomeloan.com at once. Only the
-  owner merges `develop` into `main`, and only after the reviewed content has
-  been promoted to the `production` dataset. Never merge, push, or deploy to
-  `main` yourself, and never run `vercel deploy --prod`.
-- Do not write to the `production` Sanity dataset. Create and edit content in
-  `development`; promotion to `production` is the owner's release step.
+- Create and edit content in the `development` dataset. Promotion to
+  `production` is the owner's release step.
+
+### Releases and hotfixes (the owner's steps)
+
+- Release: one pull request from `develop` into `main`. The owner opens it
+  and merges it, after promoting the reviewed content to `production`.
+- Hotfix: a branch named `hotfix/<name>`, started from `main`, merged into
+  `main` by a pull request. Merge `main` back into `develop` right after, so
+  `develop` keeps the fix.
+- The Release gate rejects a pull request into `main` from any branch other
+  than `develop` or `hotfix/*` in this repository. The gate cannot tell an
+  agent from the owner, so the hard rule above is what stops an agent.
 
 ## Shell discipline and reporting observations
 
