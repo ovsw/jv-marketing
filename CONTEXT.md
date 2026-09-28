@@ -32,10 +32,10 @@ The role held by Luminate Bank, which owns the Mortgage Application and the lend
 The personal brand and leader of The Highly Motivated Vercellino Team. He specializes heavily in VA loans but also originates other mortgages. His YouTube channel is devoted to VA loans, has over one million views, and is the main source of the business; being his audience is the main reason veterans choose him. Jimmy takes every Consultation and every sales call himself and records the Consultation Outcome; no other Team Member does. He reviews all VA and eligibility content before publication. The website may present his own military service record and his years in VA lending as credentials. His NMLS ID is 184169. Confirmed by the project owner, 2026-09-09.
 
 **VALoansForVets.com**:
-A mortgage brand of The Highly Motivated Vercellino Team and its Web Property, exclusively for veterans nationwide, with a focus on VA loans. Every veteran is served through this brand regardless of Origin Brand or Mortgage Product; its public display name is **VA Loans for Vets**. Confirmed by the project owner, 2026-09-09.
+A mortgage brand of The Highly Motivated Vercellino Team and its Web Property, made to attract veterans nationwide, with a focus on VA loans. It is an entry point, not a separate service: a veteran who contacts the team through PHXHomeLoan.com stays with PHXHomeLoan.com. Its public display name is **VA Loans for Vets**. Confirmed by the project owner, 2026-09-28.
 
 **PHXHomeLoan.com**:
-The sister mortgage brand and Web Property of VALoansForVets.com, operated by the same team with Luminate Bank as lender. Its domain includes education, marketing, lead generation, Nurture, and conversion before handing a Prospective Borrower to Luminate Bank for the Mortgage Application. It has a broader mortgage focus and can capture a veteran, but a veteran is served and nurtured through VALoansForVets.com. Confirmed by the project owner, 2026-09-09.
+The sister mortgage brand and Web Property of VALoansForVets.com, operated by the same team with Luminate Bank as lender. Its domain includes education, marketing, lead generation, Nurture, and conversion before handing a Prospective Borrower to Luminate Bank for the Mortgage Application. It has a broader mortgage focus and serves veterans and non-veterans. Confirmed by the project owner, 2026-09-28.
 
 **PHX Home Loan**:
 The public display name of PHXHomeLoan.com. It is not a separate organization.
@@ -55,7 +55,10 @@ A person who belongs to The Highly Motivated Vercellino Team. A Team Member hand
 A website operated by The Highly Motivated Vercellino Team on its own domain. The team operates VALoansForVets.com and PHXHomeLoan.com as separate brands.
 
 **Origin Brand**:
-The Web Property through which a person first contacts the team. It is retained for attribution, but veteran status—not Origin Brand—determines whether the person is served and nurtured through VALoansForVets.com. Confirmed by the project owner, 2026-09-09.
+The Web Property through which a person first contacts the team. It is kept for attribution. The same team serves every person the same way, whatever their Origin Brand. Confirmed by the project owner, 2026-09-28.
+
+**Sender Brand**:
+The Web Property whose name sends a person's Nurture: the one they contacted most recently. It starts as the Origin Brand and changes when the person later contacts the other brand. A person receives one Nurture Sequence at a time, and their newest Assessment Submission replaces their Next Step and Audience Segment. Confirmed by the project owner, 2026-09-28.
 
 **Web Page**:
 Any public destination on a Web Property, including the homepage, blog index, Evergreen Pages, and Blog Posts.
@@ -96,10 +99,14 @@ A person while they are using a Web Property. This describes their current inter
 A defined group of people with a shared mortgage need, situation, or acquisition source, targeted by Organic Content, Paid Media, or a Marketing Funnel. Membership in an Audience does not establish loan eligibility or approval.
 
 **Audience Segment**:
-A subgroup within an Audience, distinguished by more specific criteria so its Marketing and Nurture can address its needs more precisely. **Segment** is acceptable shorthand when the Audience is clear.
+A subgroup within an Audience, distinguished by more specific criteria so its Marketing and Nurture can address its needs more precisely. The Assessment places each Person in one Audience Segment from their answers; it asks a question only to choose a segment when that segment changes the wording of its Nurture. The PHXHomeLoan.com buying segments are first-time buyer, veteran first-time buyer, owner who must sell to buy, owner who buys and keeps the current home, past owner who buys again, second-home buyer, and investor; the refinance segments are lower rate or payment, VA streamline, cash-out or debt payoff, remove mortgage insurance, and divorce buyout. Investor and divorce buyout wait for Jimmy Vercellino to confirm. Confirmed by the project owner, 2026-09-28. **Segment** is acceptable shorthand when the Audience is clear.
+
+**Avatar**:
+A portrait of one made-up typical member of an Audience Segment, with their situation, goals, fears, objections, and words, used to write content and offers. It is never assigned to a real person; data places a person in a Segment, and the Avatar helps the team write for that Segment. Confirmed by the project owner, 2026-09-28.
+_Avoid_: Persona, Customer Profile
 
 **Mortgage Goal**:
-The home-buying, purchase, or refinance result a veteran says they want. It provides the direction for their Audience Segment, guidance, and Nurture. Confirmed by the project owner, 2026-09-09.
+The home-buying, purchase, or refinance result a Prospective Borrower says they want. It provides the direction for their Audience Segment, guidance, and Nurture. Confirmed by the project owner, 2026-09-09.
 
 **Primary Concern**:
 The one Mortgage Goal or uncertainty an Audience Member, Visitor, or Engaged Lead identifies as most important within a Marketing Funnel. It determines their Audience Segment and shapes their Nurture. Confirmed by the project owner, 2026-09-09.
@@ -117,7 +124,7 @@ The main obstacle for First-Time Buyers: connected questions about how VA loans 
 One person within an Audience, whether or not they have visited a Web Property.
 
 **Engaged Lead**:
-A veteran who gives usable contact information through their own request or submission to either Web Property, such as taking an Assessment or asking for help. The request itself is the engagement; Origin Brand does not change how the veteran is served. **Lead** is acceptable shorthand when the context is clear.
+A person who gives usable contact information through their own request or submission to either Web Property, such as taking an Assessment or asking for help. The request itself is the engagement; Origin Brand does not change how the person is served. **Lead** is acceptable shorthand when the context is clear.
 _Avoid_: Cold Lead, Contact, Subscriber
 
 **Marketing Qualified Lead**:
@@ -132,26 +139,26 @@ _Avoid_: Qualified Lead, Vetted Lead
 The process triggered when an Engaged Lead schedules or begins a Consultation and their information is routed to The Highly Motivated Vercellino Team. The Handoff turns the Engaged Lead into a Marketing Qualified Lead; it is not a Lifecycle Stage.
 
 **Consultation**:
-A 15-minute phone conversation, or video on request, where Jimmy Vercellino discusses a veteran's mortgage need and whether to pursue it as an Opportunity. It can be scheduled or begin from a direct call; nobody screens a booking before the call. Confirmed by the project owner, 2026-09-09.
+A 15-minute phone conversation, or video on request, where Jimmy Vercellino discusses a person's mortgage need and whether to pursue it as an Opportunity. It can be scheduled or begin from a direct call; nobody screens a booking before the call. Confirmed by the project owner, 2026-09-09.
 
 **Consultation Outcome**:
 The decision Jimmy Vercellino records after a completed Consultation: Opportunity, Preparation Needed, or Not Moving Forward. Opportunity and Preparation Needed make the person a Sales Qualified Lead; Not Moving Forward does not.
 
 **Preparation Needed**:
-A Consultation Outcome used when a veteran has a mortgage goal but must address a known obstacle before it becomes an Opportunity. The person is a Sales Qualified Lead while they prepare.
+A Consultation Outcome used when a person has a mortgage goal but must address a known obstacle before it becomes an Opportunity. The person is a Sales Qualified Lead while they prepare.
 _Avoid_: Follow Up Later
 
 **Preparation Reason**:
-The broad reason a veteran needs more preparation, such as credit readiness, purchase timing, closing costs, reserves, or employment stability. The main confirmed reasons are credit readiness and a desired move date more than 90 days away; the term excludes scores, balances, and detailed financial notes. Confirmed in the strategy meeting, 2026-09-08.
+The broad reason a person needs more preparation, chosen by Jimmy Vercellino from the Next Step list when he records Preparation Needed, such as fix credit first, learn your budget now and get pre-approved later, build cash first, or get steady income on record first. His choice replaces the person's Next Step. The main confirmed reasons are credit readiness and a desired move date more than 90 days away; the term excludes scores, balances, and detailed financial notes. Confirmed by the project owner, 2026-09-28.
 
 **Long-Term Nurture**:
-Nurture that helps a veteran address a Preparation Reason over time after a Consultation and return when ready for another Consultation. Credit preparation and future purchase timing use different Long-Term Nurture. Confirmed by the project owner, 2026-09-09.
+The Nurture Sequence for a Preparation Reason, started by Jimmy Vercellino's Consultation Outcome instead of by an Assessment, which helps a person prepare over time and return when ready for another Consultation. It uses the same Nurture Sequences as the matching Next Steps. Confirmed by the project owner, 2026-09-28.
 
 **Personal Follow-Up**:
-A direct message or phone call from Jimmy Vercellino or another Team Member. It asks a missed or cancelled Consultation to reschedule, or occurs on a date set during a Consultation when more preparation is needed. Confirmed by the project owner, 2026-09-09.
+A direct message or phone call from Jimmy Vercellino or another Team Member. It asks a missed or cancelled Consultation to reschedule, or occurs on a date set during a Consultation when more preparation is needed. It also occurs on the same business day when an Assessment's Next Step is get pre-approved now with a contract already signed, or talk it through with Jimmy. Confirmed by the project owner, 2026-09-28.
 
 **Not Moving Forward**:
-A Consultation Outcome used when The Highly Motivated Vercellino Team and the veteran will not pursue the mortgage need as an Opportunity.
+A Consultation Outcome used when The Highly Motivated Vercellino Team and the person will not pursue the mortgage need as an Opportunity. It ends the Lead Journey with no Nurture Sequence; the person receives only Stay in Touch when their consent covers it. Confirmed by the project owner, 2026-09-28.
 
 **Appointment**:
 The record of a scheduled Consultation, including when it will happen and whether it is booked, completed, cancelled, or missed. A cancelled or missed Appointment does not change the person's Lifecycle Stage and enters rebooking after Personal Follow-Up. Confirmed by the project owner, 2026-09-09.
@@ -167,7 +174,7 @@ _Avoid_: Deal, Pipeline Stage
 The progress of one Opportunity through Opportunity Opened, Application, Underwriting, Clear to Close, and Closed. Each mortgage need has its own file and Opportunity Progress. Confirmed by the project owner, 2026-09-09.
 
 **Business Fit**:
-Jimmy Vercellino's judgment that the team can responsibly help with a veteran's mortgage need. It considers the Assessment answers, income and credit ranges, reserves, willingness to proceed, and target loan amount; a loan amount near or below $100,000 is a judgment signal, not a fixed cutoff. Confirmed by the project owner, 2026-09-09.
+Jimmy Vercellino's judgment that the team can responsibly help with a person's mortgage need. It considers the Assessment answers, income and credit ranges, reserves, willingness to proceed, and target loan amount; a loan amount near or below $100,000 is a judgment signal, not a fixed cutoff. Confirmed by the project owner, 2026-09-09.
 
 **Customer**:
 A person who has closed at least one mortgage originated by The Highly Motivated Vercellino Team and begins customer Nurture. A Customer can have multiple Opportunities over time without returning to an earlier Lifecycle Stage. Confirmed by the project owner, 2026-09-09.
@@ -188,31 +195,47 @@ The furthest confirmed relationship milestone a person has reached in the Custom
 The plan that defines the brand’s target Audiences, their needs, the value offered to them, and the routes and measures used to attract and convert them. Marketing Funnels are part of the Marketing Strategy.
 
 **Lead Magnet**:
-A free offer, delivered once or as a time-bounded series, that attracts Audience Members by helping them solve a specific mortgage-related problem in exchange for contact information. The initial Lead Magnet of VALoansForVets.com is a three-minute Assessment with a Readiness Score and Action Plan. Confirmed in the strategy meeting, 2026-09-08.
+A free offer, delivered once or as a time-bounded series, that attracts Audience Members by helping them solve a specific mortgage-related problem in exchange for contact information. The initial Lead Magnet is a three-minute Assessment that recommends a Next Step. It is built for PHXHomeLoan.com first; the VALoansForVets.com Assessment is a later, shorter version with the same Next Steps. Confirmed by the project owner, 2026-09-28.
 
 **Assessment**:
-A short quiz that identifies a Prospective Borrower's mortgage need and potential readiness from self-reported answers, without documents; it does not establish loan eligibility or approval. The PHXHomeLoan.com Assessment serves veterans and non-veterans on purchase and refinance paths. Scope confirmed by the project owner, 2026-09-17.
+A short quiz that identifies a Prospective Borrower's mortgage need and recommends a Next Step from self-reported answers, without documents; it does not establish loan eligibility or approval. Each question must be able to change the Next Step or the Assessment's view of the person's situation; other questions are left out. Confirmed by the project owner, 2026-09-28. The PHXHomeLoan.com Assessment serves veterans and non-veterans on purchase and refinance paths. Scope confirmed by the project owner, 2026-09-17.
 
 **Assessment Definition**:
-The Shared CRM's specification of an Assessment: its questions, their meaning, which ones are required, the valid answer options, and the canonical label for each option. The Shared CRM owns it; a Web Property renders it and may restyle or rephrase wording, but may not add, remove, or reinterpret a question or option. It changes only through a deliberate release by the marketing consultant, never by Team Members inside the CRM. Confirmed by the project owner, 2026-09-16.
+The team's specification of an Assessment: its questions, their meaning, which ones are required, the valid answer options, and the canonical label for each option. The team's Intake owns it; a Web Property renders it and may restyle or rephrase wording, but may not add, remove, or reinterpret a question or option. It changes only through a deliberate release by the marketing consultant, never by Team Members inside the CRM. Confirmed by the project owner, 2026-09-16.
 _Avoid_: Quiz Schema, Form Config, Quiz Builder
 
 **Assessment Version**:
 One released edition of the Assessment Definition. A submission always names the version it was rendered from, and every version that was ever released stays valid so old submissions keep their meaning. It is different from a Marketing Funnel Version, which covers the whole funnel. Confirmed by the project owner, 2026-09-16.
 
+**Intake**:
+The team's service that receives Assessment Submissions from Intake Callers, stores each one before reporting success, and hands it to the Automation Engine, returning the Action Plan to the Web Property when the engine answers in time. Confirmed by the project owner, 2026-09-28.
+
+**Automation Engine**:
+The place that holds the team's process and decision rules, including every rule that turns Assessment answers into an Action Plan, and remembers where each Person is in their Lead Journey. Team Members do their assigned steps there; its rules change only through a deliberate release by the marketing consultant. Confirmed by the project owner, 2026-09-28.
+
+**Lead Journey**:
+The whole path of one Person from an Assessment Submission onward: the Action Plan, any same-day Personal Follow-Up, the Nurture Sequence for their Next Step, Consultations and their Outcomes, and Stay in Touch. A new Assessment Submission restarts it from the Action Plan; an Unsubscribe stops all marketing in it but not Appointment messages; it ends when a Mortgage Application starts, after Not Moving Forward, or after 12 months without any action. Confirmed by the project owner, 2026-09-28.
+
 **Intake Caller**:
-A Web Property's server that the Shared CRM has authorised to send Assessment Submissions. Each Intake Caller belongs to one Web Property and one environment, test or live, and the Shared CRM takes brand and environment from the caller, never from the submission itself. Confirmed by the project owner, 2026-09-16.
+A Web Property's server that the team's Intake has authorised to send Assessment Submissions. Each Intake Caller belongs to one Web Property and one environment, test or live, and the Intake takes brand and environment from the caller, never from the submission itself. Confirmed by the project owner, 2026-09-16.
 _Avoid_: API Key, Source, Client
 
 **Assessment Submission**:
-The permanent record of one completed Assessment as received from a Web Property, including the answers, contact details, Consent Record, and the Assessment Version it was rendered from. It is never edited after receipt, it is stored before the Shared CRM reports success, and a repeat of the same submission never creates a second record. Confirmed by the project owner, 2026-09-16.
+The permanent record of one completed Assessment as received from a Web Property, including the answers, contact details, Consent Record, and the Assessment Version it was rendered from. It is never edited after receipt, it is stored before the Intake reports success, and a repeat of the same submission never creates a second record. Confirmed by the project owner, 2026-09-16.
 _Avoid_: Quiz Response, Form Entry, Inquiry
 
-**Readiness Score**:
-An Assessment result from 0 to 100 that indicates a Prospective Borrower's potential financial readiness, separate from their intended purchase date and the team's follow-up priority. It is unavailable when essential scoring information is unknown and is never a loan estimate, promise, eligibility decision, or approval. Confirmed by the project owner, 2026-09-17.
+**Next Step**:
+The one move an Assessment recommends as best for the Prospective Borrower toward Responsible Homeownership, even when that move is not to borrow yet. Buying Next Steps are: get pre-approved now; learn your budget now and get pre-approved later; fix credit first; wait out a waiting period; build cash first; lower debts or the target price first; get steady income on record first; and keep renting for now. Refinance Next Steps are: refinance now; keep your current loan; take cash out with care; and remove mortgage insurance. Either goal can lead to talk it through with Jimmy, for a case too complex for a quiz. Both Web Properties use the same Next Steps. When several obstacles apply, the Next Step names the one that would stop a loan today and takes longest to fix, in this order: waiting period, credit, steady income, debts, cash, timing. It changes only when the person takes the Assessment again or Jimmy Vercellino records a Consultation Outcome. It is never a loan estimate, eligibility decision, or approval. Confirmed by the project owner, 2026-09-28.
+_Avoid_: Readiness Score, Outcome, Result
+
+**Readiness Factor**:
+One item of the Assessment's checklist, each marked Ready, Needs work, or Not sure yet. Buying factors are credit, cash for closing, savings after closing, debts compared to income, steady income, and timing; refinance factors are rate savings, home equity, how long the person plans to stay, and credit. It shows the person what to fix beyond their Next Step. An "I don't know" answer never chooses the Next Step; it marks its factor Not sure yet and tells the person how to find out. Confirmed by the project owner, 2026-09-28.
+
+**Comfortable Payment Range**:
+The monthly housing payment range the Assessment shows from self-reported income and monthly debts, in support of Responsible Homeownership. It is not a home price, a loan estimate, or an approval; price ranges are left for the Consultation. Confirmed by the project owner, 2026-09-28.
 
 **Action Plan**:
-A recommended next step based on a Prospective Borrower's Assessment answers and Readiness Score when available, delivered within minutes of finishing the Assessment. It uses conditional language and provides useful guidance, including how to resolve missing information, without requiring the person to book a Consultation. Confirmed by the project owner, 2026-09-17.
+The whole result a Prospective Borrower receives from an Assessment: their Next Step, their Readiness Factors, their Comfortable Payment Range when buying, and the concrete steps to take. The person gives contact details at the end of the Assessment; the Action Plan then shows on screen and is also sent by email. It uses conditional language, and provides useful guidance, including how to resolve missing information, without requiring the person to book a Consultation. Confirmed by the project owner, 2026-09-28.
 
 **Marketing Funnel**:
 A planned route for one defined Audience from first contact toward a mortgage relationship with The Highly Motivated Vercellino Team. A route may include content, Landing Pages, Lead Magnets, Conversion Points, and Nurture. A Web Property can support several Marketing Funnels.
@@ -222,13 +245,16 @@ _Avoid_: Conversion Funnel
 A published edition of a Marketing Funnel's content, offers, Guidance Promise, and Nurture Sequences. Each Engaged Lead stays on the version they entered until it finishes; a new version applies only to Engaged Leads who enter after that version is published. Confirmed by the project owner, 2026-09-09.
 
 **Nurture**:
-Useful, consented follow-up that delivers the Guidance Promise and helps a person progress toward their Mortgage Goal. Content and ads shown before contact information is captured attract an Audience Member rather than nurture a known Engaged Lead. All veterans receive the same applicable Nurture Sequence regardless of Origin Brand, and marketing Nurture ends when a Mortgage Application starts. Confirmed by the project owner, 2026-09-09.
+Useful, consented follow-up that delivers the Guidance Promise and helps a person progress toward their Mortgage Goal. Content and ads shown before contact information is captured attract an Audience Member rather than nurture a known Engaged Lead. People with the same Next Step receive the same Nurture Sequence whatever their Origin Brand, sent under their Sender Brand, and marketing Nurture ends when a Mortgage Application starts. Nurture Sequences and Stay in Touch use email only; SMS is used only for Appointment reminders and for one text when a same-day Personal Follow-Up call gets no answer. No automated message goes out before 08:00 or after 20:00 in the person's local time. Confirmed by the project owner, 2026-09-28.
 
 **Guidance Promise**:
-Information and step-by-step guidance that coaches a veteran toward their stated Mortgage Goal. It helps them understand their path and next action without promising eligibility, approval, or a particular loan result. Confirmed by the project owner, 2026-09-09.
+Information and step-by-step guidance that coaches a person toward their stated Mortgage Goal. It helps them understand their path and next action without promising eligibility, approval, or a particular loan result. Confirmed by the project owner, 2026-09-09.
 
 **Nurture Sequence**:
-An ordered series of messages that delivers Nurture to veterans in one Audience Segment. When the sequence is explicitly promised as part of a Lead Magnet, it belongs to that exchange rather than being an unrelated promotion.
+An ordered series of messages that coaches people with the same Next Step through that move; their Audience Segment chooses the wording inside each message. Messages invite the person to take the Assessment again at set intervals. Confirmed by the project owner, 2026-09-28. When the sequence is explicitly promised as part of a Lead Magnet, it belongs to that exchange rather than being an unrelated promotion.
+
+**Stay in Touch**:
+A monthly email that invites the person to take the Assessment again, sent after a Nurture Sequence ends without a booking or after Not Moving Forward. It stops at an Unsubscribe, at any new action, or after 12 months without any open, click, or reply. Confirmed by the project owner, 2026-09-28.
 
 **Nurture Step**:
 One scheduled message or action within a Nurture Sequence.
@@ -266,7 +292,7 @@ The completed action or stage transition produced through a Conversion Point. No
 ### Mortgage relationship
 
 **Responsible Homeownership**:
-The team's goal of helping a veteran buy and keep a home with a monthly payment based on the veteran's budget and at least three months of mortgage reserves for unexpected costs. It takes priority over maximizing the amount the veteran can borrow. Confirmed in the strategy meeting, 2026-09-08.
+The team's goal of helping a person buy and keep a home with a monthly payment based on the person's budget and at least three months of mortgage reserves for unexpected costs. It takes priority over maximizing the amount the person can borrow. Confirmed in the strategy meeting, 2026-09-08.
 
 **Mortgage Product**:
 A named mortgage offering or financing path presented to Prospective Borrowers through a Web Property. PHXHomeLoan.com presents VA, FHA, Conventional, Jumbo, USDA, Construction-to-Permanent, ARM, and Refinance. VALoansForVets.com presents VA purchase, IRRRL, and VA cash-out as primary offerings and VA Jumbo and VA home improvement as secondary, and a veteran stays with VALoansForVets.com when another Mortgage Product is needed. Confirmed by the project owner, 2026-09-09.
