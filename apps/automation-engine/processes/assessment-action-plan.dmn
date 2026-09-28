@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:camunda="http://camunda.org/schema/1.0/dmn" id="assessment-action-plan" name="Assessment Action Plan" namespace="https://phxhomeloan.com/automation/assessment">
+  <decision id="actionPlan" name="Action Plan" camunda:historyTimeToLive="760">
+    <description>STUB (spec #164, build order step 1). Returns a fixed Action Plan from stubNextStep and stubCallToday, so that a test can steer the Lead Journey down any path. Step 2 replaces this file with the real decision tables.</description>
+    <decisionTable id="actionPlanStubTable" hitPolicy="UNIQUE">
+      <input id="stubNextStepInput" label="Stub Next Step">
+        <inputExpression id="stubNextStepExpression" typeRef="string">
+          <text>stubNextStep</text>
+        </inputExpression>
+      </input>
+      <input id="stubCallTodayInput" label="Stub call today">
+        <inputExpression id="stubCallTodayExpression" typeRef="boolean">
+          <text>stubCallToday</text>
+        </inputExpression>
+      </input>
+      <output id="segmentOutput" label="Audience Segment" name="segment" typeRef="string" />
+      <output id="nextStepOutput" label="Next Step" name="nextStep" typeRef="string" />
+      <output id="callTodayOutput" label="Call today" name="callToday" typeRef="boolean" />
+      <rule id="stubRule">
+        <inputEntry id="stubRuleNextStep">
+          <text></text>
+        </inputEntry>
+        <inputEntry id="stubRuleCallToday">
+          <text></text>
+        </inputEntry>
+        <outputEntry id="stubRuleSegment">
+          <text>"stub"</text>
+        </outputEntry>
+        <outputEntry id="stubRuleNextStepOut">
+          <text>stubNextStep</text>
+        </outputEntry>
+        <outputEntry id="stubRuleCallTodayOut">
+          <text>stubCallToday = true</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="assessment-action-plan-diagram">
+      <dmndi:DMNShape id="actionPlan_di" dmnElementRef="actionPlan">
+        <dc:Bounds height="80" width="180" x="160" y="100" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>
