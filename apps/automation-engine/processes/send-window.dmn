@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:camunda="http://camunda.org/schema/1.0/dmn" id="send-window" name="Send Window" namespace="https://phxhomeloan.com/automation/nurture">
+  <decision id="sendWindow" name="Send Window" camunda:historyTimeToLive="760">
+    <description>STUB (spec #164, build order step 1). Always inside the send window: wait 0 hours. Step 3 replaces this with the 08:00-20:00 local-time rule.</description>
+    <decisionTable id="sendWindowTable" hitPolicy="UNIQUE">
+      <input id="timeZoneInput" label="Time zone">
+        <inputExpression id="timeZoneExpression" typeRef="string">
+          <text>timeZone</text>
+        </inputExpression>
+      </input>
+      <output id="waitHoursOutput" label="Wait hours" name="waitHours" typeRef="integer" />
+      <rule id="alwaysOpen">
+        <inputEntry id="alwaysOpenTimeZone">
+          <text></text>
+        </inputEntry>
+        <outputEntry id="alwaysOpenWait">
+          <text>0</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="send-window-diagram">
+      <dmndi:DMNShape id="sendWindow_di" dmnElementRef="sendWindow">
+        <dc:Bounds height="80" width="180" x="160" y="100" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>

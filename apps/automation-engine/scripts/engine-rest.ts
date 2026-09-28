@@ -7,11 +7,17 @@ export function requiredEnv(name: string): string {
   return value;
 }
 
+export type EngineLogin = { url: string; username: string; password: string };
+
+export function basicAuthorization(login: EngineLogin): string {
+  return `Basic ${Buffer.from(`${login.username}:${login.password}`).toString("base64")}`;
+}
+
 export type EngineClient = ReturnType<typeof createEngineClient>;
 
-export function createEngineClient(options: { url: string; username: string; password: string }) {
+export function createEngineClient(options: EngineLogin) {
   const base = `${options.url.replace(/\/$/, "")}/engine-rest`;
-  const authorization = `Basic ${Buffer.from(`${options.username}:${options.password}`).toString("base64")}`;
+  const authorization = basicAuthorization(options);
 
   async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
     const headers: Record<string, string> = { authorization, accept: "application/json" };
@@ -33,5 +39,6 @@ export function createEngineClient(options: { url: string; username: string; pas
     get: <T>(path: string) => request<T>("GET", path),
     post: <T>(path: string, body?: unknown) => request<T>("POST", path, body),
     put: <T>(path: string, body?: unknown) => request<T>("PUT", path, body),
+    delete: <T>(path: string) => request<T>("DELETE", path),
   };
 }
