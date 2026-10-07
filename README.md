@@ -195,6 +195,13 @@ The blueprint currently holds:
   every content change. One per dataset, each pointed at the site that reads
   it. Production also sets `waitFor="function"` on `<SanityLive />`, so
   Sanity holds the live event until the site has been told.
+- `refresh-post-listings-production` and `refresh-post-listings-development`
+  run when a post is published, changed, unpublished, or deleted. Sync tags
+  only reach cached reads that already contain the changed post, so a new post
+  never reached the home page, the blog index, or a category archive that did
+  not show it yet. These functions send `all-content`, a tag every cached read
+  carries, so the whole site refreshes. They need the same secrets as the
+  matching `invalidate-cache-*` function.
 
 Secrets are set on the deployed function, not in the blueprint. Put the two
 values in shell variables first (the same `SANITY_REVALIDATE_TAGS_SECRET` the
@@ -207,6 +214,9 @@ VERCEL_PROTECTION_BYPASS='...' # Vercel project settings → Deployment Protecti
 pnpm exec sanity functions env add invalidate-cache-production REVALIDATE_TAGS_SECRET "$REVALIDATE_TAGS_SECRET"
 pnpm exec sanity functions env add invalidate-cache-development REVALIDATE_TAGS_SECRET "$REVALIDATE_TAGS_SECRET"
 pnpm exec sanity functions env add invalidate-cache-development VERCEL_PROTECTION_BYPASS "$VERCEL_PROTECTION_BYPASS"
+pnpm exec sanity functions env add refresh-post-listings-production REVALIDATE_TAGS_SECRET "$REVALIDATE_TAGS_SECRET"
+pnpm exec sanity functions env add refresh-post-listings-development REVALIDATE_TAGS_SECRET "$REVALIDATE_TAGS_SECRET"
+pnpm exec sanity functions env add refresh-post-listings-development VERCEL_PROTECTION_BYPASS "$VERCEL_PROTECTION_BYPASS"
 ```
 
 The Preview site sits behind Vercel Authentication, which is why the

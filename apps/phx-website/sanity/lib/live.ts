@@ -5,6 +5,7 @@ import {
   type LivePerspective,
 } from "next-sanity/live";
 import { cookies, draftMode } from "next/headers";
+import { ALL_CONTENT_CACHE_TAG } from "./cache-tags";
 import { client } from "./client";
 import { token } from "./token";
 
@@ -42,6 +43,7 @@ export async function sanityFetchStaticParams<
     params,
     perspective: "published",
     stega: false,
+    tags: [ALL_CONTENT_CACHE_TAG],
   });
   return { data };
 }
@@ -61,6 +63,7 @@ export async function sanityFetchMetadata<const QueryString extends string>({
     params,
     perspective,
     stega: false,
+    tags: [ALL_CONTENT_CACHE_TAG],
   });
   return { data };
 }
