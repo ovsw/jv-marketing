@@ -215,7 +215,7 @@ Sanity's infrastructure. They are not deployed by CI; deploy them from
 
 ```bash
 cd apps/phx-studio
-pnpm exec sanity blueprints deploy
+SANITY_STUDIO_PROJECT_ID=hv0545v9 pnpm exec sanity blueprints deploy
 ```
 
 The blueprint currently holds:
@@ -229,6 +229,13 @@ The blueprint currently holds:
   every content change. One per dataset, each pointed at the site that reads
   it. Production also sets `waitFor="function"` on `<SanityLive />`, so
   Sanity holds the live event until the site has been told.
+- `refresh-post-listings-production` and `refresh-post-listings-development`
+  run when a post is published, changed, unpublished, or deleted. Sync tags
+  only reach cached reads that already contain the changed post, so a new post
+  never reached the home page, the blog index, or a category archive that did
+  not show it yet. These functions send `all-content`, a tag every cached read
+  carries, so the whole site refreshes. They need the same secrets as the
+  matching `invalidate-cache-*` function.
 
 Secrets are set on the deployed function, not in the blueprint. Put the two
 values in shell variables first (the same `SANITY_REVALIDATE_TAGS_SECRET` the
@@ -241,6 +248,9 @@ VERCEL_PROTECTION_BYPASS='...' # Vercel project settings → Deployment Protecti
 pnpm exec sanity functions env add invalidate-cache-production REVALIDATE_TAGS_SECRET "$REVALIDATE_TAGS_SECRET"
 pnpm exec sanity functions env add invalidate-cache-development REVALIDATE_TAGS_SECRET "$REVALIDATE_TAGS_SECRET"
 pnpm exec sanity functions env add invalidate-cache-development VERCEL_PROTECTION_BYPASS "$VERCEL_PROTECTION_BYPASS"
+pnpm exec sanity functions env add refresh-post-listings-production REVALIDATE_TAGS_SECRET "$REVALIDATE_TAGS_SECRET"
+pnpm exec sanity functions env add refresh-post-listings-development REVALIDATE_TAGS_SECRET "$REVALIDATE_TAGS_SECRET"
+pnpm exec sanity functions env add refresh-post-listings-development VERCEL_PROTECTION_BYPASS "$VERCEL_PROTECTION_BYPASS"
 ```
 
 The Preview site sits behind Vercel Authentication, which is why the
@@ -278,6 +288,15 @@ They will be able to access the deployed Studio, where you can collaborate toget
 The contact form uses Formspark through `apps/phx-website/app/actions/submit-contact-form.ts`.
 Its recipient and delivery settings are managed in Formspark. The old
 `NEXT_RESEND_TO_EMAIL` and `NEXT_RESEND_FROM_EMAIL` variables do not control contact delivery.
+
+A message reaches Formspark only after Cloudflare Turnstile confirms that a
+person, not a bot, filled in the form. The website's server checks the
+Turnstile token; Formspark's own challenge setting is not used. Most visitors
+see no check; a visitor whom Cloudflare finds suspicious gets a checkbox to
+click. A hidden honeypot field also stops simple bots: they get the thank-you
+page, but nothing is sent. The Turnstile widget `phxhomeloan.com` is in Ovi's
+Cloudflare account, mode Managed, for `phxhomeloan.com` and
+`www.phxhomeloan.com`.
 
 ### Configuring Resend (optional)
 
@@ -423,6 +442,13 @@ All environment variables and their descriptions:
 - `RESEND_API_KEY` - your RESEND api key for the newsletter form.
 - `RESEND_AUDIENCE_ID` - your RESEND audience id for the newsletter form to store contacts.
 - `YOUTUBE_API_KEY` - a YouTube Data API v3 key (restrict it to that API in the Google Cloud console). Used at build/revalidate time to fetch video metadata for automatic VideoObject JSON-LD. Optional: when absent, pages render normally without video schema. Remember to add it to the Vercel project settings too.
+- `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` (server-only) -
+  the Cloudflare Turnstile keys for the contact form's bot check. Production
+  holds the real keys of the `phxhomeloan.com` widget. Preview and local
+  development use Cloudflare's always-pass test keys
+  (`1x00000000000000000000AA` and `1x0000000000000000000000000000000AA`), so
+  a preview message still reaches Formspark and emails its recipients. Without
+  both keys the contact form sends nothing.
 - `CRM_INTAKE_URL` and `CRM_INTAKE_SECRET` - the Shared CRM origin and this
   website's Intake Caller secret for Assessment submissions. Production holds
   the live secret; Preview holds the test secret. Server-only. See
