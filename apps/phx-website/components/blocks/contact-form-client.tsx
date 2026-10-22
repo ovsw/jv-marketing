@@ -62,6 +62,10 @@ export default function ContactFormClient({
   );
   const [formState, formAction, isSubmitting] = useActionState(
     async (previousState: ContactFormState, formData: FormData) => {
+      // The server shows honeypot bots the thank-you page; no token needed.
+      if (formData.get("_honeypot")) {
+        return submitContactForm(previousState, formData);
+      }
       try {
         formData.set("turnstileToken", await turnstile.token());
       } catch {
