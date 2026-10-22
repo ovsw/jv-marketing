@@ -255,6 +255,15 @@ The contact form uses Formspark through `apps/phx-website/app/actions/submit-con
 Its recipient and delivery settings are managed in Formspark. The old
 `NEXT_RESEND_TO_EMAIL` and `NEXT_RESEND_FROM_EMAIL` variables do not control contact delivery.
 
+A message reaches Formspark only after Cloudflare Turnstile confirms that a
+person, not a bot, filled in the form. The website's server checks the
+Turnstile token; Formspark's own challenge setting is not used. Most visitors
+see no check; a visitor whom Cloudflare finds suspicious gets a checkbox to
+click. A hidden honeypot field also stops simple bots: they get the thank-you
+page, but nothing is sent. The Turnstile widget `phxhomeloan.com` is in Ovi's
+Cloudflare account, mode Managed, for `phxhomeloan.com` and
+`www.phxhomeloan.com`.
+
 ### Configuring Resend (optional)
 
 To use the newsletter form, you need to configure Resend.
@@ -393,6 +402,13 @@ All environment variables and their descriptions:
 - `RESEND_API_KEY` - your RESEND api key for the newsletter form.
 - `RESEND_AUDIENCE_ID` - your RESEND audience id for the newsletter form to store contacts.
 - `YOUTUBE_API_KEY` - a YouTube Data API v3 key (restrict it to that API in the Google Cloud console). Used at build/revalidate time to fetch video metadata for automatic VideoObject JSON-LD. Optional: when absent, pages render normally without video schema. Remember to add it to the Vercel project settings too.
+- `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` (server-only) -
+  the Cloudflare Turnstile keys for the contact form's bot check. Production
+  holds the real keys of the `phxhomeloan.com` widget. Preview and local
+  development use Cloudflare's always-pass test keys
+  (`1x00000000000000000000AA` and `1x0000000000000000000000000000000AA`), so
+  a preview message still reaches Formspark and emails its recipients. Without
+  both keys the contact form sends nothing.
 - `CRM_INTAKE_URL` and `CRM_INTAKE_SECRET` - the Shared CRM origin and this
   website's Intake Caller secret for Assessment submissions. Production holds
   the live secret; Preview holds the test secret. Server-only. See

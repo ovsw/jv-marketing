@@ -1,9 +1,11 @@
 "use client";
 
+import { CONTACT_BOT_CHECK_ERROR } from "@/app/actions/contact-form-messages";
 import {
   submitContactForm,
   type ContactFormState,
 } from "@/app/actions/submit-contact-form";
+import { useTurnstileToken } from "@/components/blocks/contact-form-turnstile";
 import type {
   ContactFormBlock,
   ContactFormDataAttributes,
@@ -12,7 +14,7 @@ import type {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { stegaClean } from "next-sanity";
-import { useActionState, useId } from "react";
+import { useActionState, useId, useRef } from "react";
 
 type ContactFormClientProps = ContactFormBlock & {
   dataAttributes?: ContactFormDataAttributes;
@@ -53,8 +55,20 @@ export default function ContactFormClient({
   title,
   useCreamBackground,
 }: ContactFormClientProps) {
+  const challengeRef = useRef<HTMLDivElement>(null);
+  const turnstile = useTurnstileToken(
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
+    challengeRef,
+  );
   const [formState, formAction, isSubmitting] = useActionState(
-    submitContactForm,
+    async (previousState: ContactFormState, formData: FormData) => {
+      try {
+        formData.set("turnstileToken", await turnstile.token());
+      } catch {
+        return { error: CONTACT_BOT_CHECK_ERROR };
+      }
+      return submitContactForm(previousState, formData);
+    },
     initialContactFormState,
   );
   const generatedId = useId();
@@ -245,6 +259,25 @@ export default function ContactFormClient({
                 rows={5}
               />
             </label>
+
+            <div aria-hidden="true" hidden>
+              <label htmlFor={`${idPrefix}-website`}>Leave this field empty</label>
+              <input
+                autoComplete="off"
+                id={`${idPrefix}-website`}
+                name="_honeypot"
+                tabIndex={-1}
+                type="text"
+              />
+            </div>
+
+            {/* Shows a checkbox only when Cloudflare needs the visitor to click.
+                Until then the box is empty and kept out of the layout, so it
+                adds no gap to the form. */}
+            <div
+              className={turnstile.interactive ? undefined : "absolute"}
+              ref={challengeRef}
+            />
 
             <div className="flex flex-wrap items-center gap-5">
               <Button
