@@ -84,7 +84,7 @@ Housing information. Do not collapse PHX Home Loan and Jimmy into one entity.
 ## Evidence on Hand
 
 - The approved domain model and service-area decisions are recorded in
-  `../../CONTEXT.md`.
+  `../../GLOSSARY.md`.
 - The incumbent PHX logo is at
   `public/brand/phx-luminate-logo-stacked.png`.
 - The incumbent award asset is at `public/brand/phx-award-trophy.png`.

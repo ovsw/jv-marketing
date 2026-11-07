@@ -33,6 +33,6 @@ its own deployed app with its own Vercel project, worker, and database.
 - The seven August 2026 CRM ADRs of the PHXHomeLoan.com repo are an abandoned
   prototype. They are moved to an archive folder outside the project, labelled
   as not to be used, and are not carried into this repo's decisions.
-- This repo's `CONTEXT.md` becomes the single root glossary of the monorepo.
+- This repo's `GLOSSARY.md` becomes the single root glossary of the monorepo.
   The PHXHomeLoan.com glossary is retired; its funnel concepts are already
   present here under the canonical terms.

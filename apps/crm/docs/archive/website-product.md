@@ -19,7 +19,7 @@ web
 
 **Not a site user: Luminate Bank** (the Lender) owns the Mortgage Application on its own systems.
 
-Vocabulary is fixed in the root `CONTEXT.md`. Use its terms (Engaged Lead, Consultation, Opportunity, Blog Post) and respect its `_Avoid_` lists.
+Vocabulary is fixed in the root `GLOSSARY.md`. Use its terms (Engaged Lead, Consultation, Opportunity, Blog Post) and respect its `_Avoid_` lists.
 
 ## Product Purpose
 
@@ -95,10 +95,10 @@ Undecided: the new Assessment's final questions and scoring (the old quiz invent
 ## Evidence on Hand
 
 - Jimmy's bio (current site, `/my-story/`): U.S. Marine Corps, Operation Iraqi Freedom, joined at 18, met his wife while stationed at Kaneohe Bay, moved to Phoenix in 2005, licensed instructor with the Arizona Department of Real Estate, family (wife Sylvia, children Sylvia Ann and Christian). Years in lending and awards are **not** published; do not invent them.
-- YouTube channel: over one million views (CONTEXT.md). Exact subscriber/view counts must be pulled live before printing.
+- YouTube channel: over one million views (GLOSSARY.md). Exact subscriber/view counts must be pulled live before printing.
 - Business numbers (`domain-modeling-questions.md`, from the VA Loans Lead Source Audit): 915 lead submissions Jan 2025–Aug 2026; 59.2% YouTube-attributed; **46 loans funded, $23,449,938, Jan 1–Aug 17, 2026**. Usable as internal context; publish only with Jimmy's approval.
 - Reviews: the current homepage shows 12+ customer reviews (fast closings of 17–30 days, responsiveness). Google and Zillow Reviews from veteran Customers may be used. None are in this repo yet; all Sanity seed testimonials, team members, and posts are neutral placeholders and must be replaced.
-- Existing quiz inventory: the current "Check Your Eligibility" quiz (source `connect.phxhomeloan.com`, inspected 2026-09-09) is transcribed question by question, with options and branch notes, in Basecamp: https://app.basecamp.com/6230954/buckets/48575281/documents/10286280158 (project 48575281, account 6230954). It is a text inventory of the old quiz (purchase and refinance paths, 17 purchase steps: city, budget, home type, occupancy, timeline, current ownership, rent, lease end, first-time buyer, credit range, marital status, and more), not the new Assessment's scoring. Use it as the starting point for Assessment content; the new Assessment also needs service history and state per CONTEXT.md.
+- Existing quiz inventory: the current "Check Your Eligibility" quiz (source `connect.phxhomeloan.com`, inspected 2026-09-09) is transcribed question by question, with options and branch notes, in Basecamp: https://app.basecamp.com/6230954/buckets/48575281/documents/10286280158 (project 48575281, account 6230954). It is a text inventory of the old quiz (purchase and refinance paths, 17 purchase steps: city, budget, home type, occupancy, timeline, current ownership, rent, lease end, first-time buyer, credit range, marital status, and more), not the new Assessment's scoring. Use it as the starting point for Assessment content; the new Assessment also needs service history and state per GLOSSARY.md.
 - Absent: partner logos, press, case studies, real team bios, Assessment scoring (weights, score bands, Action Plans). Do not fabricate.
 
 ## Product Principles
