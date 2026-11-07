@@ -5,7 +5,7 @@ PHXHomeLoan.com and VALoansForVets.com. This repository owns the staff
 interface, database integration, and Trigger.dev worker.
 
 The CRM is the `apps/crm` workspace in the family monorepo. The root
-[`CONTEXT.md`](../../CONTEXT.md) and [`docs/adr`](../../docs/adr) directory own
+[`GLOSSARY.md`](../../GLOSSARY.md) and [`docs/adr`](../../docs/adr) directory own
 the shared language and architecture decisions.
 
 The current application supports staff-only test inquiries. It does not yet
