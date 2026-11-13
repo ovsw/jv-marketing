@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="nurture-sequence-definitions" targetNamespace="https://phxhomeloan.com/automation/lead-journey">
+  <bpmn:process id="nurture-sequence" name="Nurture Sequence" isExecutable="true" camunda:historyTimeToLive="760">
+    <bpmn:documentation>Email-only Nurture for one Next Step (spec #164). Called by the Lead Journey's Marketing phase with nextStep, segment, military, senderBrand, timeZone, and stepNumber = 1.</bpmn:documentation>
+    <bpmn:startEvent id="NurtureStarted" name="Nurture started" />
+    <bpmn:sequenceFlow id="Flow_StartToFindStep" sourceRef="NurtureStarted" targetRef="FindNurtureStep" />
+    <bpmn:businessRuleTask id="FindNurtureStep" name="Find next Nurture step" camunda:decisionRef="nurtureSequenceSteps" camunda:decisionRefBinding="latest" camunda:resultVariable="nurtureStep" camunda:mapDecisionResult="singleResult" />
+    <bpmn:sequenceFlow id="Flow_FindStepToGateway" sourceRef="FindNurtureStep" targetRef="StepFoundGateway" />
+    <bpmn:exclusiveGateway id="StepFoundGateway" name="Step found?" default="Flow_StepFound" />
+    <bpmn:sequenceFlow id="Flow_NoMoreSteps" name="no" sourceRef="StepFoundGateway" targetRef="NurtureFinished">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${nurtureStep == null}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:endEvent id="NurtureFinished" name="Nurture finished" />
+    <bpmn:sequenceFlow id="Flow_StepFound" name="yes" sourceRef="StepFoundGateway" targetRef="WaitBeforeStep" />
+    <bpmn:intermediateCatchEvent id="WaitBeforeStep" name="Wait before step">
+      <bpmn:timerEventDefinition id="WaitBeforeStepTimer">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${nurtureStep.waitBefore}</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="Flow_WaitToSendWindow" sourceRef="WaitBeforeStep" targetRef="CheckSendWindow" />
+    <bpmn:businessRuleTask id="CheckSendWindow" name="Check send window" camunda:decisionRef="sendWindow" camunda:decisionRefBinding="latest" camunda:resultVariable="waitHours" camunda:mapDecisionResult="singleEntry" />
+    <bpmn:sequenceFlow id="Flow_SendWindowToGateway" sourceRef="CheckSendWindow" targetRef="OutsideSendWindowGateway" />
+    <bpmn:exclusiveGateway id="OutsideSendWindowGateway" name="Outside send window?" default="Flow_InsideSendWindow" />
+    <bpmn:sequenceFlow id="Flow_OutsideSendWindow" name="yes" sourceRef="OutsideSendWindowGateway" targetRef="WaitForSendWindow">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${waitHours &gt; 0}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:intermediateCatchEvent id="WaitForSendWindow" name="Wait until the window opens">
+      <bpmn:timerEventDefinition id="WaitForSendWindowTimer">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT${waitHours}H</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="Flow_WindowOpenToSend" sourceRef="WaitForSendWindow" targetRef="SendNurtureEmail" />
+    <bpmn:sequenceFlow id="Flow_InsideSendWindow" name="no" sourceRef="OutsideSendWindowGateway" targetRef="SendNurtureEmail" />
+    <bpmn:serviceTask id="SendNurtureEmail" name="Send Nurture email" camunda:type="external" camunda:topic="email.send">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="templateKey">${nurtureStep.templateKey}</camunda:inputParameter>
+          <camunda:outputParameter name="stepNumber">${stepNumber + 1}</camunda:outputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_SendToNextStep" sourceRef="SendNurtureEmail" targetRef="FindNurtureStep" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_nurture-sequence">
+    <bpmndi:BPMNPlane id="BPMNPlane_nurture-sequence" bpmnElement="nurture-sequence">
+      <bpmndi:BPMNShape id="BPMNShape_NurtureStarted" bpmnElement="NurtureStarted">
+        <dc:Bounds x="80" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="71" y="143" width="55" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_FindNurtureStep" bpmnElement="FindNurtureStep">
+        <dc:Bounds x="216" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_StepFoundGateway" bpmnElement="StepFoundGateway" isMarkerVisible="true">
+        <dc:Bounds x="416" y="95" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="401" y="76" width="80" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_NurtureFinished" bpmnElement="NurtureFinished">
+        <dc:Bounds x="566" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="554" y="143" width="60" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_WaitBeforeStep" bpmnElement="WaitBeforeStep">
+        <dc:Bounds x="566" y="262" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="543" y="303" width="82" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_CheckSendWindow" bpmnElement="CheckSendWindow">
+        <dc:Bounds x="702" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_OutsideSendWindowGateway" bpmnElement="OutsideSendWindowGateway" isMarkerVisible="true">
+        <dc:Bounds x="902" y="255" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="884" y="222" width="87" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_WaitForSendWindow" bpmnElement="WaitForSendWindow">
+        <dc:Bounds x="1052" y="422" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1032" y="463" width="77" height="42" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_SendNurtureEmail" bpmnElement="SendNurtureEmail">
+        <dc:Bounds x="1188" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_StartToFindStep" bpmnElement="Flow_StartToFindStep">
+        <di:waypoint x="116" y="120" />
+        <di:waypoint x="216" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_FindStepToGateway" bpmnElement="Flow_FindStepToGateway">
+        <di:waypoint x="316" y="120" />
+        <di:waypoint x="416" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_NoMoreSteps" bpmnElement="Flow_NoMoreSteps">
+        <di:waypoint x="466" y="120" />
+        <di:waypoint x="566" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="507" y="98" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_InsideSendWindow" bpmnElement="Flow_InsideSendWindow">
+        <di:waypoint x="952" y="280" />
+        <di:waypoint x="1188" y="280" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1061" y="258" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_SendToNextStep" bpmnElement="Flow_SendToNextStep">
+        <di:waypoint x="1238" y="320" />
+        <di:waypoint x="1238" y="340" />
+        <di:waypoint x="266" y="340" />
+        <di:waypoint x="266" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_StepFound" bpmnElement="Flow_StepFound">
+        <di:waypoint x="441" y="145" />
+        <di:waypoint x="441" y="242" />
+        <di:waypoint x="584" y="242" />
+        <di:waypoint x="584" y="262" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="500" y="220" width="25" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_WaitToSendWindow" bpmnElement="Flow_WaitToSendWindow">
+        <di:waypoint x="602" y="280" />
+        <di:waypoint x="702" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_SendWindowToGateway" bpmnElement="Flow_SendWindowToGateway">
+        <di:waypoint x="802" y="280" />
+        <di:waypoint x="902" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_OutsideSendWindow" bpmnElement="Flow_OutsideSendWindow">
+        <di:waypoint x="927" y="305" />
+        <di:waypoint x="927" y="440" />
+        <di:waypoint x="1052" y="440" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="932" y="366" width="25" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_WindowOpenToSend" bpmnElement="Flow_WindowOpenToSend">
+        <di:waypoint x="1070" y="422" />
+        <di:waypoint x="1070" y="340" />
+        <di:waypoint x="1238" y="340" />
+        <di:waypoint x="1238" y="320" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

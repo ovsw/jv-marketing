@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:camunda="http://camunda.org/schema/1.0/dmn" id="nurture-sequence-steps" name="Nurture Sequence Steps" namespace="https://phxhomeloan.com/automation/nurture">
+  <decision id="nurtureSequenceSteps" name="Nurture Sequence Steps" camunda:historyTimeToLive="760">
+    <description>STUB (spec #164, build order step 1). Two steps for every Next Step, one minute apart. No matching row means the sequence has ended. Step 3 replaces this with the real cadence.</description>
+    <decisionTable id="nurtureSequenceStepsTable" hitPolicy="UNIQUE">
+      <input id="nextStepInput" label="Next Step">
+        <inputExpression id="nextStepExpression" typeRef="string">
+          <text>nextStep</text>
+        </inputExpression>
+      </input>
+      <input id="stepNumberInput" label="Step number">
+        <inputExpression id="stepNumberExpression" typeRef="integer">
+          <text>stepNumber</text>
+        </inputExpression>
+      </input>
+      <output id="templateKeyOutput" label="Template key" name="templateKey" typeRef="string" />
+      <output id="waitBeforeOutput" label="Wait before (ISO duration)" name="waitBefore" typeRef="string" />
+      <rule id="stepOne">
+        <inputEntry id="stepOneNextStep">
+          <text></text>
+        </inputEntry>
+        <inputEntry id="stepOneNumber">
+          <text>1</text>
+        </inputEntry>
+        <outputEntry id="stepOneTemplate">
+          <text>"nurture." + nextStep + ".1"</text>
+        </outputEntry>
+        <outputEntry id="stepOneWait">
+          <text>"PT1M"</text>
+        </outputEntry>
+      </rule>
+      <rule id="stepTwo">
+        <inputEntry id="stepTwoNextStep">
+          <text></text>
+        </inputEntry>
+        <inputEntry id="stepTwoNumber">
+          <text>2</text>
+        </inputEntry>
+        <outputEntry id="stepTwoTemplate">
+          <text>"nurture." + nextStep + ".2"</text>
+        </outputEntry>
+        <outputEntry id="stepTwoWait">
+          <text>"PT1M"</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="nurture-sequence-steps-diagram">
+      <dmndi:DMNShape id="nurtureSequenceSteps_di" dmnElementRef="nurtureSequenceSteps">
+        <dc:Bounds height="80" width="180" x="160" y="100" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>

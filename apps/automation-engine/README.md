@@ -45,6 +45,37 @@ Everything for the automation stack stays in this folder and in
 | `pnpm bootstrap` | Create or update the machine logins `ops` and `worker` with the admin login. Run after the first boot and after changing a machine password. |
 | `pnpm smoke` | End-to-end check: deploy the test process, start it with a fake Person ID, Worker completes the external task, complete the user task, timer fires, instance ends. |
 | `pnpm smoke --timer PT3M --hold` then `--resume <id>` | Restart drill: hold an instance with the timer pending and the user task open, restart the engine, then finish it. |
+| `pnpm modeler:push` | Upload every file in `processes/` to the development Modeler (overwrite), and deploy the ones that differ from the engine's latest version. Refuses to overwrite Modeler edits that were never pulled; `--force` discards them. |
+| `pnpm modeler:pull` | Write the Modeler's current XML over the files in `processes/`. Modeler diagrams with no file there are listed, not written. |
+| `pnpm drive` | Walk every path of the Lead Journey on the development engine (spec #164), one case per path, in parallel. `--case <name>` runs one case; `--keep` leaves the instances for Cockpit. |
+
+## Processes
+
+`processes/` holds the promoted flows: the BPMN processes and DMN decisions
+that run in the engine. The business key of every Lead Journey instance is the
+Person's Shared CRM record ID.
+
+| File | Holds |
+| --- | --- |
+| `lead-journey.bpmn` | The Lead Journey: Action Plan, same-day call, Marketing phase, Consultation, Consultation Outcome, and the "at any time" event subprocesses. |
+| `nurture-sequence.bpmn`, `stay-in-touch.bpmn` | Called by the Marketing phase. |
+| `assessment-action-plan.dmn`, `nurture-sequence-steps.dmn`, `send-window.dmn`, `task-due.dmn` | Stubs for now (spec #164 build order step 1): fixed results, so that `pnpm drive` can steer any path. `actionPlan` returns `stubNextStep` and `stubCallToday` from the start variables. |
+
+The Modeler and Git hold the same XML. After an edit in the Modeler, run
+`pnpm modeler:pull` and commit before the next edit in the repo; after an edit
+in the repo, run `pnpm modeler:push`. The Modeler matches a file to its diagram
+by the name of the first process or decision, so keep those names stable.
+The Modeler's own deploy button makes a new version on every click, also when
+nothing changed; `modeler:push` does not.
+
+A new BPMN file written by hand gets its diagram layout once with
+`pnpm exec bpmn-auto-layout processes/<file>.bpmn` (it replaces all layout in
+the file, so never run it on a file that was tidied in the Modeler).
+Subprocesses come out collapsed: click one in the Modeler to open it.
+
+No script tasks: flags and counters are set with input and output mappings.
+The engine rejects output mappings on end events, so a flag set on the way out
+of a subprocess sits on an intermediate throw event before the end event.
 
 Until the Cloudflare Access seam exists (#151), `ENGINE_URL` is the
 Railway-generated domain and the smoke command uses the `ops` machine login.

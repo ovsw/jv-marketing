@@ -17,6 +17,9 @@ importers:
       '@types/node':
         specifier: ^26.1.0
         version: 26.1.0
+      bpmn-auto-layout:
+        specifier: 2.0.0-alpha.2
+        version: 2.0.0-alpha.2
       railway:
         specifier: 3.11.0
         version: 3.11.0
@@ -5820,6 +5823,14 @@ packages:
     resolution: {integrity: sha512-F3PH5k5juxom4xktynS7MoFY+NUWH5LC4CnH11YB8NPew+HLpmBLCybSAEyb2F+4pRXhuhWqFesoQd6DAyc2hw==}
     engines: {node: '>=18'}
 
+  bpmn-auto-layout@2.0.0-alpha.2:
+    resolution: {integrity: sha512-Xg8BoRMijfECgWljIlE44hbGDAuF0BkjJuLfd5o3oOx1ileL06EJQhlgO040xFIegfjxq91dVFAoxCL17wo53A==}
+    engines: {node: '>= 18'}
+    hasBin: true
+
+  bpmn-moddle@10.3.1:
+    resolution: {integrity: sha512-xjJ8GzseRkjjM0MX/rODVB6iv+rhGLt8FCHJIovLAjJsDEAUjITfyiJZYczJ4pp3wmesbY3sQR7eRT+q5uroVA==}
+
   brace-expansion@1.1.15:
     resolution: {integrity: sha512-EwOCDEex4quD37XhqM3omwtMoJjr//isUZz1JopUNWms+4Z2ViyM/k1YIRePpoVNnQhENnxtFjLaxNHrT7xIUg==}
 
@@ -8037,6 +8048,9 @@ packages:
     resolution: {integrity: sha512-z0yWI+4FDrrweS8Zmt4Ej5HdJmky15+L2e6Wgn3+iK5fWzb6T3fhNFq2+MeTRb064c6Wr4N/wv0DzQTjNzHNGQ==}
     engines: {node: '>=10'}
 
+  min-dash@5.1.0:
+    resolution: {integrity: sha512-HAvN6XzmCQj+js43G9sJRRw8kj/7DvoxN7qhoIN9Xo5ZN1NMljtpyKs/NunXmw0QSWwlgZzNv6tLeEa4xaZ0tg==}
+
   min-indent@1.0.1:
     resolution: {integrity: sha512-I9jwMn07Sy/IwOj3zVkVik2JTvgpaykDZEigL6Rx6N9LbMywwUSMtxET+7lVoDLLd3O3IXwJwvuuns8UB/HeAg==}
     engines: {node: '>=4'}
@@ -8085,6 +8099,15 @@ packages:
 
   mlly@1.8.2:
     resolution: {integrity: sha512-d+ObxMQFmbt10sretNDytwt85VrbkhhUA/JBGm1MPaWJ65Cl4wOgLaB1NYvJSZ0Ef03MMEU/0xpPMXUIQ29UfA==}
+
+  moddle-xml@12.3.1:
+    resolution: {integrity: sha512-XbAQDWCG2ZRch3odmQigJ4GwTqrOVBx0+JHEAgdw0U3MkBsWa9LAbO//S5RPdYMcRO87E63r/R/I3CoMef6ncA==}
+    engines: {node: '>= 18'}
+    peerDependencies:
+      moddle: '>= 6.2.0'
+
+  moddle@8.2.1:
+    resolution: {integrity: sha512-20qzO/ZpMGO9j9gdQgXk9bfGxb9wA3JKnGth/21YZKODLrZE4RW/uVMIL5pTskYm34Z61DucBEPkq93qByNsBQ==}
 
   module-details-from-path@1.0.4:
     resolution: {integrity: sha512-EGWKgxALGMgzvxYF1UyGTy0HXX/2vHLkw6+NvDKW2jypWbHpjQuj4UMcqQWXHERJhVGKikolT06G3bcKe4fi7w==}
@@ -9074,6 +9097,10 @@ packages:
 
   sax@1.2.1:
     resolution: {integrity: sha512-8I2a3LovHTOpm7NV5yOyO8IHqgVsfK4+UuySrXU8YXkSRX7k6hCV9b3HrkKCr3nMpgj+0bmocaJJWpvp1oc7ZA==}
+
+  saxen@11.2.0:
+    resolution: {integrity: sha512-2bG564AAJcm/3vyZC0Uhs/mACrH+4AHMaKHKAB2M5xMqomUZa27FQ7MYaQGFKVcJk/MVzSEQ34A8QZWW+eiWEw==}
+    engines: {node: '>= 20.12'}
 
   saxes@6.0.0:
     resolution: {integrity: sha512-xAg7SOnEhrm5zI3puOOKyy1OMcMlIJZYNJY7xLBwSze0UjhPLnWfj2GF2EpT0jmzaJKIWKHLsaSSajf35bcYnA==}
@@ -16109,6 +16136,17 @@ snapshots:
       widest-line: 5.0.0
       wrap-ansi: 9.0.2
 
+  bpmn-auto-layout@2.0.0-alpha.2:
+    dependencies:
+      bpmn-moddle: 10.3.1
+      min-dash: 5.1.0
+
+  bpmn-moddle@10.3.1:
+    dependencies:
+      min-dash: 5.1.0
+      moddle: 8.2.1
+      moddle-xml: 12.3.1(moddle@8.2.1)
+
   brace-expansion@1.1.15:
     dependencies:
       balanced-match: 1.0.2
@@ -18529,6 +18567,8 @@ snapshots:
 
   mimic-response@3.1.0: {}
 
+  min-dash@5.1.0: {}
+
   min-indent@1.0.1: {}
 
   minimal-polyfills@2.2.3: {}
@@ -18572,6 +18612,16 @@ snapshots:
       pathe: 2.0.3
       pkg-types: 1.3.1
       ufo: 1.6.4
+
+  moddle-xml@12.3.1(moddle@8.2.1):
+    dependencies:
+      min-dash: 5.1.0
+      moddle: 8.2.1
+      saxen: 11.2.0
+
+  moddle@8.2.1:
+    dependencies:
+      min-dash: 5.1.0
 
   module-details-from-path@1.0.4: {}
 
@@ -19875,6 +19925,8 @@ snapshots:
       - vue-tsc
 
   sax@1.2.1: {}
+
+  saxen@11.2.0: {}
 
   saxes@6.0.0:
     dependencies:

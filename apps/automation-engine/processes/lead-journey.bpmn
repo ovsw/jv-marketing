@@ -1,0 +1,1309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="lead-journey-definitions" targetNamespace="https://phxhomeloan.com/automation/lead-journey">
+  <bpmn:process id="lead-journey" name="Lead Journey" isExecutable="true" camunda:historyTimeToLive="760">
+    <bpmn:documentation>The whole relationship with one Person, from the Assessment to a Mortgage Application (spec #164). The business key is the Person's Shared CRM record ID. Tasks for a person start with "Jimmy:" or "Team:".</bpmn:documentation>
+    <bpmn:startEvent id="AssessmentSubmitted" name="Assessment submitted">
+      <bpmn:messageEventDefinition id="AssessmentSubmittedDefinition" messageRef="Message_AssessmentSubmitted" />
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_SubmittedToEvaluate" sourceRef="AssessmentSubmitted" targetRef="EvaluateAssessment" />
+    <bpmn:businessRuleTask id="EvaluateAssessment" name="Evaluate Assessment" camunda:decisionRef="actionPlan" camunda:decisionRefBinding="latest" camunda:resultVariable="actionPlan" camunda:mapDecisionResult="singleResult">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:outputParameter name="nextStep">${actionPlan.nextStep}</camunda:outputParameter>
+          <camunda:outputParameter name="marketingAllowed">${emailConsent}</camunda:outputParameter>
+          <camunda:outputParameter name="skipNurture">${false}</camunda:outputParameter>
+          <camunda:outputParameter name="restartNurture">${false}</camunda:outputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+    </bpmn:businessRuleTask>
+    <bpmn:sequenceFlow id="Flow_EvaluateToSave" sourceRef="EvaluateAssessment" targetRef="SaveActionPlan" />
+    <bpmn:serviceTask id="SaveActionPlan" name="Save Action Plan" camunda:asyncBefore="true" camunda:type="external" camunda:topic="crm.person.update">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="lifecycleStage">engaged_lead</camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_SaveToEmail" sourceRef="SaveActionPlan" targetRef="SendActionPlanEmail" />
+    <bpmn:serviceTask id="SendActionPlanEmail" name="Send Action Plan email" camunda:type="external" camunda:topic="email.send">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="templateKey">action-plan</camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_EmailToSplit" sourceRef="SendActionPlanEmail" targetRef="AfterActionPlan" />
+    <bpmn:parallelGateway id="AfterActionPlan" />
+    <bpmn:sequenceFlow id="Flow_SplitToCallToday" sourceRef="AfterActionPlan" targetRef="CallTodayGateway" />
+    <bpmn:sequenceFlow id="Flow_SplitToMarketing" sourceRef="AfterActionPlan" targetRef="MarketingPhase" />
+    <bpmn:exclusiveGateway id="CallTodayGateway" name="Call today?" default="Flow_NoCallToday" />
+    <bpmn:sequenceFlow id="Flow_CallToday" name="yes" sourceRef="CallTodayGateway" targetRef="SetCallDue">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${actionPlan.callToday}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_NoCallToday" name="no" sourceRef="CallTodayGateway" targetRef="NoCallNeeded" />
+    <bpmn:endEvent id="NoCallNeeded" name="No call needed" />
+    <bpmn:businessRuleTask id="SetCallDue" name="Set call due time" camunda:decisionRef="taskDue" camunda:decisionRefBinding="latest" camunda:resultVariable="callDue" camunda:mapDecisionResult="singleEntry" />
+    <bpmn:sequenceFlow id="Flow_DueToCall" sourceRef="SetCallDue" targetRef="CallToday" />
+    <bpmn:userTask id="CallToday" name="Jimmy: call today" camunda:candidateGroups="originator" camunda:dueDate="${callDue}">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="reached" label="I reached the person" type="boolean" />
+          <camunda:formField id="notes" label="Notes" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_CallToReached" sourceRef="CallToday" targetRef="ReachedGateway" />
+    <bpmn:exclusiveGateway id="ReachedGateway" name="Not reached and SMS allowed?" default="Flow_CallDone" />
+    <bpmn:sequenceFlow id="Flow_SendMissedCall" name="yes" sourceRef="ReachedGateway" targetRef="SendMissedCallSms">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!reached &amp;&amp; smsConsent}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_CallDone" name="no" sourceRef="ReachedGateway" targetRef="CallHandled" />
+    <bpmn:serviceTask id="SendMissedCallSms" name="Send missed-call SMS" camunda:type="external" camunda:topic="sms.send">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="templateKey">missed-call</camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_SmsToCallHandled" sourceRef="SendMissedCallSms" targetRef="CallHandled" />
+    <bpmn:endEvent id="CallHandled" name="Call handled" />
+    <bpmn:subProcess id="MarketingPhase" name="Marketing phase">
+      <bpmn:startEvent id="MarketingStarted" name="Marketing started" />
+      <bpmn:sequenceFlow id="Flow_MarketingToSkip" sourceRef="MarketingStarted" targetRef="SkipNurtureGateway" />
+      <bpmn:exclusiveGateway id="SkipNurtureGateway" name="Stay in Touch only?" default="Flow_ToNurture" />
+      <bpmn:sequenceFlow id="Flow_ToNurture" name="no" sourceRef="SkipNurtureGateway" targetRef="NurtureSequence" />
+      <bpmn:sequenceFlow id="Flow_SkipNurture" name="yes" sourceRef="SkipNurtureGateway" targetRef="StayInTouch">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${skipNurture}</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:callActivity id="NurtureSequence" name="Nurture Sequence for the Next Step" calledElement="nurture-sequence" camunda:calledElementBinding="latest">
+        <bpmn:extensionElements>
+          <camunda:in businessKey="#{execution.processBusinessKey}" />
+          <camunda:in source="nextStep" target="nextStep" />
+          <camunda:in sourceExpression="${actionPlan.segment}" target="segment" />
+          <camunda:in source="military" target="military" />
+          <camunda:in source="senderBrand" target="senderBrand" />
+          <camunda:in source="timeZone" target="timeZone" />
+          <camunda:in sourceExpression="${1}" target="stepNumber" />
+        </bpmn:extensionElements>
+      </bpmn:callActivity>
+      <bpmn:sequenceFlow id="Flow_NurtureToStayInTouch" sourceRef="NurtureSequence" targetRef="StayInTouch" />
+      <bpmn:callActivity id="StayInTouch" name="Stay in Touch" calledElement="stay-in-touch" camunda:calledElementBinding="latest">
+        <bpmn:extensionElements>
+          <camunda:in businessKey="#{execution.processBusinessKey}" />
+          <camunda:in source="senderBrand" target="senderBrand" />
+          <camunda:in source="timeZone" target="timeZone" />
+          <camunda:in sourceExpression="${0}" target="monthsWithoutAction" />
+        </bpmn:extensionElements>
+      </bpmn:callActivity>
+      <bpmn:sequenceFlow id="Flow_StayInTouchToEnd" sourceRef="StayInTouch" targetRef="MarketingFinished" />
+      <bpmn:endEvent id="MarketingFinished" name="Marketing finished" />
+    </bpmn:subProcess>
+    <bpmn:sequenceFlow id="Flow_MarketingToEnd" sourceRef="MarketingPhase" targetRef="NoActionFor12Months" />
+    <bpmn:endEvent id="NoActionFor12Months" name="12 months without any action" />
+    <bpmn:boundaryEvent id="ConsultationBookedInMarketing" name="Consultation booked" attachedToRef="MarketingPhase">
+      <bpmn:messageEventDefinition id="ConsultationBookedInMarketingDefinition" messageRef="Message_ConsultationBooked" />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_BookedToConsultation" sourceRef="ConsultationBookedInMarketing" targetRef="Consultation" />
+    <bpmn:boundaryEvent id="MarketingNotAllowed" name="Marketing not allowed" attachedToRef="MarketingPhase">
+      <bpmn:conditionalEventDefinition id="MarketingNotAllowedDefinition" camunda:variableName="marketingAllowed">
+        <bpmn:condition xsi:type="bpmn:tFormalExpression">${marketingAllowed == false}</bpmn:condition>
+      </bpmn:conditionalEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_NotAllowedToWait" sourceRef="MarketingNotAllowed" targetRef="WaitWithoutMarketing" />
+    <bpmn:eventBasedGateway id="WaitWithoutMarketing" name="Wait without marketing" />
+    <bpmn:sequenceFlow id="Flow_WaitToBooked" sourceRef="WaitWithoutMarketing" targetRef="ConsultationBookedWithoutMarketing" />
+    <bpmn:sequenceFlow id="Flow_WaitToTwelveMonths" sourceRef="WaitWithoutMarketing" targetRef="TwelveMonthsWithoutMarketing" />
+    <bpmn:intermediateCatchEvent id="ConsultationBookedWithoutMarketing" name="Consultation booked">
+      <bpmn:messageEventDefinition id="ConsultationBookedWithoutMarketingDefinition" messageRef="Message_ConsultationBooked" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="Flow_BookedWithoutMarketingToConsultation" sourceRef="ConsultationBookedWithoutMarketing" targetRef="Consultation" />
+    <bpmn:intermediateCatchEvent id="TwelveMonthsWithoutMarketing" name="12 months">
+      <bpmn:timerEventDefinition id="TwelveMonthsWithoutMarketingTimer">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P12M</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="Flow_TwelveMonthsToUnsubscribed" sourceRef="TwelveMonthsWithoutMarketing" targetRef="Unsubscribed" />
+    <bpmn:endEvent id="Unsubscribed" name="Unsubscribed" />
+    <bpmn:boundaryEvent id="NewAssessmentInMarketing" name="New Assessment" attachedToRef="MarketingPhase">
+      <bpmn:conditionalEventDefinition id="NewAssessmentInMarketingDefinition" camunda:variableName="restartNurture">
+        <bpmn:condition xsi:type="bpmn:tFormalExpression">${restartNurture == true}</bpmn:condition>
+      </bpmn:conditionalEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_NewAssessmentToRestart" sourceRef="NewAssessmentInMarketing" targetRef="RestartNurture" />
+    <bpmn:intermediateThrowEvent id="RestartNurture" name="Restart Nurture">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:outputParameter name="restartNurture">${false}</camunda:outputParameter>
+          <camunda:outputParameter name="skipNurture">${false}</camunda:outputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+    </bpmn:intermediateThrowEvent>
+    <bpmn:sequenceFlow id="Flow_RestartToMarketing" sourceRef="RestartNurture" targetRef="MarketingPhase" />
+    <bpmn:subProcess id="Consultation" name="Consultation">
+      <bpmn:startEvent id="ConsultationStarted" name="Consultation booked" />
+      <bpmn:sequenceFlow id="Flow_ConsultationToMql" sourceRef="ConsultationStarted" targetRef="MarkMarketingQualifiedLead" />
+      <bpmn:serviceTask id="MarkMarketingQualifiedLead" name="Mark Marketing Qualified Lead" camunda:type="external" camunda:topic="crm.person.update">
+        <bpmn:extensionElements>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="lifecycleStage">marketing_qualified_lead</camunda:inputParameter>
+          </camunda:inputOutput>
+        </bpmn:extensionElements>
+      </bpmn:serviceTask>
+      <bpmn:sequenceFlow id="Flow_MqlToWait" sourceRef="MarkMarketingQualifiedLead" targetRef="WaitForAppointment" />
+      <bpmn:receiveTask id="WaitForAppointment" name="Wait for the appointment" messageRef="Message_AppointmentCompleted" />
+      <bpmn:sequenceFlow id="Flow_CompletedToHappened" name="completed" sourceRef="WaitForAppointment" targetRef="ConsultationHappened" />
+      <bpmn:boundaryEvent id="Reminder24h" name="24 h before" cancelActivity="false" attachedToRef="WaitForAppointment">
+        <bpmn:timerEventDefinition id="Reminder24hTimer">
+          <bpmn:timeDate xsi:type="bpmn:tFormalExpression">${dateTime().withMillis(appointmentAt.time).minusHours(24).toDate()}</bpmn:timeDate>
+        </bpmn:timerEventDefinition>
+      </bpmn:boundaryEvent>
+      <bpmn:sequenceFlow id="Flow_Reminder24hToSms" sourceRef="Reminder24h" targetRef="SendReminder24h" />
+      <bpmn:serviceTask id="SendReminder24h" name="Send 24 h reminder SMS" camunda:type="external" camunda:topic="sms.send">
+        <bpmn:extensionElements>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="templateKey">reminder-24h</camunda:inputParameter>
+          </camunda:inputOutput>
+        </bpmn:extensionElements>
+      </bpmn:serviceTask>
+      <bpmn:sequenceFlow id="Flow_Reminder24hToEnd" sourceRef="SendReminder24h" targetRef="Reminder24hSent" />
+      <bpmn:endEvent id="Reminder24hSent" name="Reminder sent" />
+      <bpmn:boundaryEvent id="Reminder1h" name="1 h before" cancelActivity="false" attachedToRef="WaitForAppointment">
+        <bpmn:timerEventDefinition id="Reminder1hTimer">
+          <bpmn:timeDate xsi:type="bpmn:tFormalExpression">${dateTime().withMillis(appointmentAt.time).minusHours(1).toDate()}</bpmn:timeDate>
+        </bpmn:timerEventDefinition>
+      </bpmn:boundaryEvent>
+      <bpmn:sequenceFlow id="Flow_Reminder1hToSms" sourceRef="Reminder1h" targetRef="SendReminder1h" />
+      <bpmn:serviceTask id="SendReminder1h" name="Send 1 h reminder SMS" camunda:type="external" camunda:topic="sms.send">
+        <bpmn:extensionElements>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="templateKey">reminder-1h</camunda:inputParameter>
+          </camunda:inputOutput>
+        </bpmn:extensionElements>
+      </bpmn:serviceTask>
+      <bpmn:sequenceFlow id="Flow_Reminder1hToEnd" sourceRef="SendReminder1h" targetRef="Reminder1hSent" />
+      <bpmn:endEvent id="Reminder1hSent" name="Reminder sent" />
+      <bpmn:boundaryEvent id="AppointmentMissed" name="Missed" attachedToRef="WaitForAppointment">
+        <bpmn:messageEventDefinition id="AppointmentMissedDefinition" messageRef="Message_AppointmentMissed" />
+      </bpmn:boundaryEvent>
+      <bpmn:sequenceFlow id="Flow_MissedToReschedule" sourceRef="AppointmentMissed" targetRef="AskToReschedule" />
+      <bpmn:boundaryEvent id="AppointmentCancelled" name="Cancelled" attachedToRef="WaitForAppointment">
+        <bpmn:messageEventDefinition id="AppointmentCancelledDefinition" messageRef="Message_AppointmentCancelled" />
+      </bpmn:boundaryEvent>
+      <bpmn:sequenceFlow id="Flow_CancelledToReschedule" sourceRef="AppointmentCancelled" targetRef="AskToReschedule" />
+      <bpmn:boundaryEvent id="AppointmentRescheduled" name="Rescheduled" attachedToRef="WaitForAppointment">
+        <bpmn:messageEventDefinition id="AppointmentRescheduledDefinition" messageRef="Message_AppointmentRescheduled" />
+      </bpmn:boundaryEvent>
+      <bpmn:sequenceFlow id="Flow_RescheduledToWait" sourceRef="AppointmentRescheduled" targetRef="WaitForAppointment" />
+      <bpmn:boundaryEvent id="NoAppointmentResult" name="2 h after, no result" attachedToRef="WaitForAppointment">
+        <bpmn:timerEventDefinition id="NoAppointmentResultTimer">
+          <bpmn:timeDate xsi:type="bpmn:tFormalExpression">${dateTime().withMillis(appointmentAt.time).plusHours(2).toDate()}</bpmn:timeDate>
+        </bpmn:timerEventDefinition>
+      </bpmn:boundaryEvent>
+      <bpmn:sequenceFlow id="Flow_NoResultToAsk" sourceRef="NoAppointmentResult" targetRef="DidConsultationHappen" />
+      <bpmn:userTask id="DidConsultationHappen" name="Jimmy: did the Consultation happen?" camunda:candidateGroups="originator">
+        <bpmn:extensionElements>
+          <camunda:formData>
+            <camunda:formField id="happened" label="The Consultation happened" type="boolean" />
+          </camunda:formData>
+        </bpmn:extensionElements>
+      </bpmn:userTask>
+      <bpmn:sequenceFlow id="Flow_AskToHappenedGateway" sourceRef="DidConsultationHappen" targetRef="HappenedGateway" />
+      <bpmn:exclusiveGateway id="HappenedGateway" name="Happened?" default="Flow_NotHappened" />
+      <bpmn:sequenceFlow id="Flow_Happened" name="yes" sourceRef="HappenedGateway" targetRef="ConsultationHappened">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${happened}</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="Flow_NotHappened" name="no" sourceRef="HappenedGateway" targetRef="AskToReschedule" />
+      <bpmn:intermediateThrowEvent id="ConsultationHappened" name="Consultation completed">
+        <bpmn:extensionElements>
+          <camunda:inputOutput>
+            <camunda:outputParameter name="consultationExit">completed</camunda:outputParameter>
+          </camunda:inputOutput>
+        </bpmn:extensionElements>
+      </bpmn:intermediateThrowEvent>
+      <bpmn:sequenceFlow id="Flow_HappenedToEnd" sourceRef="ConsultationHappened" targetRef="ConsultationCompleted" />
+      <bpmn:endEvent id="ConsultationCompleted" name="Consultation completed" />
+      <bpmn:userTask id="AskToReschedule" name="Team: ask to reschedule" camunda:candidateGroups="team">
+        <bpmn:extensionElements>
+          <camunda:formData>
+            <camunda:formField id="result" label="Result" type="enum">
+              <camunda:validation>
+                <camunda:constraint name="required" />
+              </camunda:validation>
+              <camunda:value id="rebooked" name="Rebooked" />
+              <camunda:value id="not_reached" name="Not reached" />
+            </camunda:formField>
+          </camunda:formData>
+        </bpmn:extensionElements>
+      </bpmn:userTask>
+      <bpmn:sequenceFlow id="Flow_RescheduleToResult" sourceRef="AskToReschedule" targetRef="RescheduleResultGateway" />
+      <bpmn:exclusiveGateway id="RescheduleResultGateway" name="Rebooked?" default="Flow_NotReached" />
+      <bpmn:sequenceFlow id="Flow_Rebooked" name="rebooked" sourceRef="RescheduleResultGateway" targetRef="WaitForNewBooking">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${result == 'rebooked'}</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="Flow_NotReached" name="not reached" sourceRef="RescheduleResultGateway" targetRef="BackToMarketing" />
+      <bpmn:eventBasedGateway id="WaitForNewBooking" name="Wait for the new booking" />
+      <bpmn:sequenceFlow id="Flow_WaitToNewBooking" sourceRef="WaitForNewBooking" targetRef="NewBooking" />
+      <bpmn:sequenceFlow id="Flow_WaitToNoBooking" sourceRef="WaitForNewBooking" targetRef="NoNewBooking" />
+      <bpmn:intermediateCatchEvent id="NewBooking" name="Consultation booked">
+        <bpmn:messageEventDefinition id="NewBookingDefinition" messageRef="Message_ConsultationBooked" />
+      </bpmn:intermediateCatchEvent>
+      <bpmn:sequenceFlow id="Flow_NewBookingToWait" sourceRef="NewBooking" targetRef="WaitForAppointment" />
+      <bpmn:intermediateCatchEvent id="NoNewBooking" name="14 days">
+        <bpmn:timerEventDefinition id="NoNewBookingTimer">
+          <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P14D</bpmn:timeDuration>
+        </bpmn:timerEventDefinition>
+      </bpmn:intermediateCatchEvent>
+      <bpmn:sequenceFlow id="Flow_NoBookingToBack" sourceRef="NoNewBooking" targetRef="BackToMarketing" />
+      <bpmn:intermediateThrowEvent id="BackToMarketing" name="Back to Stay in Touch">
+        <bpmn:extensionElements>
+          <camunda:inputOutput>
+            <camunda:outputParameter name="consultationExit">back_to_marketing</camunda:outputParameter>
+            <camunda:outputParameter name="skipNurture">${true}</camunda:outputParameter>
+          </camunda:inputOutput>
+        </bpmn:extensionElements>
+      </bpmn:intermediateThrowEvent>
+      <bpmn:sequenceFlow id="Flow_BackToEnd" sourceRef="BackToMarketing" targetRef="ConsultationLeft" />
+      <bpmn:endEvent id="ConsultationLeft" name="Consultation did not happen" />
+    </bpmn:subProcess>
+    <bpmn:sequenceFlow id="Flow_ConsultationToExit" sourceRef="Consultation" targetRef="ConsultationExitGateway" />
+    <bpmn:exclusiveGateway id="ConsultationExitGateway" name="Consultation completed?" default="Flow_ExitToMarketing" />
+    <bpmn:sequenceFlow id="Flow_ExitCompleted" name="yes" sourceRef="ConsultationExitGateway" targetRef="RecordConsultationOutcome">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${consultationExit == 'completed'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_ExitToMarketing" name="no" sourceRef="ConsultationExitGateway" targetRef="MarketingPhase" />
+    <bpmn:userTask id="RecordConsultationOutcome" name="Jimmy: record Consultation Outcome" camunda:candidateGroups="originator">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="consultationOutcome" label="Consultation Outcome" type="enum">
+            <camunda:validation>
+              <camunda:constraint name="required" />
+            </camunda:validation>
+            <camunda:value id="opportunity" name="Opportunity" />
+            <camunda:value id="preparation_needed" name="Preparation Needed" />
+            <camunda:value id="not_moving_forward" name="Not Moving Forward" />
+          </camunda:formField>
+          <camunda:formField id="preparationReason" label="Preparation Reason (when Preparation Needed)" type="enum">
+            <camunda:value id="wait_out_waiting_period" name="Wait out a waiting period" />
+            <camunda:value id="fix_credit_first" name="Fix credit first" />
+            <camunda:value id="get_steady_income_on_record_first" name="Get steady income on record first" />
+            <camunda:value id="lower_debts_or_target_price_first" name="Lower debts or the target price first" />
+            <camunda:value id="build_cash_first" name="Build cash first" />
+            <camunda:value id="keep_renting_for_now" name="Keep renting for now" />
+            <camunda:value id="learn_budget_now_pre_approve_later" name="Learn your budget now, get pre-approved later" />
+            <camunda:value id="get_pre_approved_now" name="Get pre-approved now" />
+            <camunda:value id="refinance_now" name="Refinance now" />
+            <camunda:value id="keep_your_current_loan" name="Keep your current loan" />
+            <camunda:value id="take_cash_out_with_care" name="Take cash out with care" />
+            <camunda:value id="remove_mortgage_insurance" name="Remove mortgage insurance" />
+            <camunda:value id="talk_it_through_with_jimmy" name="Talk it through with Jimmy" />
+          </camunda:formField>
+          <camunda:formField id="followUpDate" label="Follow-up call date (when Preparation Needed)" type="date" />
+          <camunda:formField id="notes" label="Notes" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_OutcomeToGateway" sourceRef="RecordConsultationOutcome" targetRef="OutcomeGateway" />
+    <bpmn:exclusiveGateway id="OutcomeGateway" name="Consultation Outcome?" />
+    <bpmn:sequenceFlow id="Flow_Opportunity" name="Opportunity" sourceRef="OutcomeGateway" targetRef="MarkSalesQualifiedLead">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${consultationOutcome == 'opportunity'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_PreparationNeeded" name="Preparation Needed" sourceRef="OutcomeGateway" targetRef="MarkPreparationNeeded">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${consultationOutcome == 'preparation_needed'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_NotMovingForward" name="Not Moving Forward" sourceRef="OutcomeGateway" targetRef="RecordNotMovingForward">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${consultationOutcome == 'not_moving_forward'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:serviceTask id="MarkSalesQualifiedLead" name="Mark Sales Qualified Lead" camunda:type="external" camunda:topic="crm.person.update">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="lifecycleStage">sales_qualified_lead</camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_SqlToOpportunity" sourceRef="MarkSalesQualifiedLead" targetRef="CreateOpportunity" />
+    <bpmn:serviceTask id="CreateOpportunity" name="Create Opportunity" camunda:type="external" camunda:topic="crm.opportunity.create" />
+    <bpmn:sequenceFlow id="Flow_OpportunityToWait" sourceRef="CreateOpportunity" targetRef="WaitForApplication" />
+    <bpmn:intermediateCatchEvent id="WaitForApplication" name="60 days">
+      <bpmn:timerEventDefinition id="WaitForApplicationTimer">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P60D</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="Flow_WaitToCheck" sourceRef="WaitForApplication" targetRef="CheckApplicationStatus" />
+    <bpmn:userTask id="CheckApplicationStatus" name="Jimmy: check application status" camunda:candidateGroups="originator">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="status" label="Mortgage Application" type="enum">
+            <camunda:validation>
+              <camunda:constraint name="required" />
+            </camunda:validation>
+            <camunda:value id="started" name="Started" />
+            <camunda:value id="not_yet" name="Not yet" />
+            <camunda:value id="dropped" name="Dropped" />
+          </camunda:formField>
+        </camunda:formData>
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_CheckToStatus" sourceRef="CheckApplicationStatus" targetRef="ApplicationStatusGateway" />
+    <bpmn:exclusiveGateway id="ApplicationStatusGateway" name="Application status?" />
+    <bpmn:sequenceFlow id="Flow_ApplicationStarted" name="started" sourceRef="ApplicationStatusGateway" targetRef="ApplicationStarted">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${status == 'started'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_ApplicationNotYet" name="not yet" sourceRef="ApplicationStatusGateway" targetRef="WaitForApplication">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${status == 'not_yet'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_ApplicationDropped" name="dropped" sourceRef="ApplicationStatusGateway" targetRef="StayInTouchOnly">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${status == 'dropped'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:endEvent id="ApplicationStarted" name="Application started" />
+    <bpmn:serviceTask id="MarkPreparationNeeded" name="Mark Sales Qualified Lead with Preparation Reason" camunda:type="external" camunda:topic="crm.person.update">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="lifecycleStage">sales_qualified_lead</camunda:inputParameter>
+          <camunda:inputParameter name="nextStep">${preparationReason}</camunda:inputParameter>
+          <camunda:outputParameter name="nextStep">${preparationReason}</camunda:outputParameter>
+          <camunda:outputParameter name="skipNurture">${false}</camunda:outputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_PreparationToSplit" sourceRef="MarkPreparationNeeded" targetRef="PreparationSplit" />
+    <bpmn:parallelGateway id="PreparationSplit" />
+    <bpmn:sequenceFlow id="Flow_PreparationToMarketing" name="Long-Term Nurture" sourceRef="PreparationSplit" targetRef="MarketingPhase" />
+    <bpmn:sequenceFlow id="Flow_PreparationToFollowUp" sourceRef="PreparationSplit" targetRef="WaitForFollowUpDate" />
+    <bpmn:intermediateCatchEvent id="WaitForFollowUpDate" name="Follow-up date">
+      <bpmn:timerEventDefinition id="WaitForFollowUpDateTimer">
+        <bpmn:timeDate xsi:type="bpmn:tFormalExpression">${followUpDate}</bpmn:timeDate>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="Flow_FollowUpDateToCall" sourceRef="WaitForFollowUpDate" targetRef="FollowUpCall" />
+    <bpmn:userTask id="FollowUpCall" name="Team: follow-up call" camunda:candidateGroups="team,originator">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="result" label="Result" type="enum">
+            <camunda:validation>
+              <camunda:constraint name="required" />
+            </camunda:validation>
+            <camunda:value id="booked" name="Consultation booked" />
+            <camunda:value id="not_ready" name="Not ready yet" />
+            <camunda:value id="not_reached" name="Not reached" />
+          </camunda:formField>
+        </camunda:formData>
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_FollowUpToEnd" sourceRef="FollowUpCall" targetRef="FollowUpDone" />
+    <bpmn:endEvent id="FollowUpDone" name="Follow-up done" />
+    <bpmn:serviceTask id="RecordNotMovingForward" name="Record Not Moving Forward" camunda:type="external" camunda:topic="crm.person.update" />
+    <bpmn:sequenceFlow id="Flow_NotMovingForwardToStayInTouch" sourceRef="RecordNotMovingForward" targetRef="StayInTouchOnly" />
+    <bpmn:intermediateThrowEvent id="StayInTouchOnly" name="Stay in Touch only">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:outputParameter name="skipNurture">${true}</camunda:outputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+    </bpmn:intermediateThrowEvent>
+    <bpmn:sequenceFlow id="Flow_StayInTouchOnlyToMarketing" sourceRef="StayInTouchOnly" targetRef="MarketingPhase" />
+    <bpmn:subProcess id="AssessmentRetakenSubprocess" name="New Assessment" triggeredByEvent="true">
+      <bpmn:startEvent id="AssessmentRetaken" name="Assessment retaken" isInterrupting="false">
+        <bpmn:messageEventDefinition id="AssessmentRetakenDefinition" messageRef="Message_AssessmentRetaken" />
+      </bpmn:startEvent>
+      <bpmn:sequenceFlow id="Flow_RetakenToEvaluate" sourceRef="AssessmentRetaken" targetRef="EvaluateRetakenAssessment" />
+      <bpmn:businessRuleTask id="EvaluateRetakenAssessment" name="Evaluate Assessment" camunda:decisionRef="actionPlan" camunda:decisionRefBinding="latest" camunda:resultVariable="actionPlan" camunda:mapDecisionResult="singleResult">
+        <bpmn:extensionElements>
+          <camunda:inputOutput>
+            <camunda:outputParameter name="nextStep">${actionPlan.nextStep}</camunda:outputParameter>
+          </camunda:inputOutput>
+        </bpmn:extensionElements>
+      </bpmn:businessRuleTask>
+      <bpmn:sequenceFlow id="Flow_RetakenEvaluateToSave" sourceRef="EvaluateRetakenAssessment" targetRef="SaveRetakenActionPlan" />
+      <bpmn:serviceTask id="SaveRetakenActionPlan" name="Save Action Plan" camunda:asyncBefore="true" camunda:type="external" camunda:topic="crm.person.update" />
+      <bpmn:sequenceFlow id="Flow_RetakenSaveToEmail" sourceRef="SaveRetakenActionPlan" targetRef="SendRetakenActionPlanEmail" />
+      <bpmn:serviceTask id="SendRetakenActionPlanEmail" name="Send Action Plan email" camunda:type="external" camunda:topic="email.send">
+        <bpmn:extensionElements>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="templateKey">action-plan</camunda:inputParameter>
+          </camunda:inputOutput>
+        </bpmn:extensionElements>
+      </bpmn:serviceTask>
+      <bpmn:sequenceFlow id="Flow_RetakenEmailToRestart" sourceRef="SendRetakenActionPlanEmail" targetRef="RequestNurtureRestart" />
+      <bpmn:intermediateThrowEvent id="RequestNurtureRestart" name="Restart Nurture when in marketing">
+        <bpmn:extensionElements>
+          <camunda:inputOutput>
+            <camunda:outputParameter name="restartNurture">${true}</camunda:outputParameter>
+          </camunda:inputOutput>
+        </bpmn:extensionElements>
+      </bpmn:intermediateThrowEvent>
+      <bpmn:sequenceFlow id="Flow_RestartToEnd" sourceRef="RequestNurtureRestart" targetRef="NewActionPlanSent" />
+      <bpmn:endEvent id="NewActionPlanSent" name="New Action Plan sent" />
+    </bpmn:subProcess>
+    <bpmn:subProcess id="UnsubscribedSubprocess" name="Unsubscribe" triggeredByEvent="true">
+      <bpmn:documentation>The Worker sets marketingAllowed = false in the correlation. That fires the Marketing phase's "Marketing not allowed" boundary. Appointment reminders are not marketing and continue.</bpmn:documentation>
+      <bpmn:startEvent id="UnsubscribeReceived" name="Unsubscribed" isInterrupting="false">
+        <bpmn:messageEventDefinition id="UnsubscribeReceivedDefinition" messageRef="Message_Unsubscribed" />
+      </bpmn:startEvent>
+      <bpmn:sequenceFlow id="Flow_UnsubscribeToEnd" sourceRef="UnsubscribeReceived" targetRef="MarketingStopped" />
+      <bpmn:endEvent id="MarketingStopped" name="Marketing stopped" />
+    </bpmn:subProcess>
+    <bpmn:subProcess id="ApplicationStartedSubprocess" name="Mortgage Application started" triggeredByEvent="true">
+      <bpmn:startEvent id="MortgageApplicationStarted" name="Mortgage Application started">
+        <bpmn:messageEventDefinition id="MortgageApplicationStartedDefinition" messageRef="Message_MortgageApplicationStarted" />
+      </bpmn:startEvent>
+      <bpmn:sequenceFlow id="Flow_ApplicationToRecord" sourceRef="MortgageApplicationStarted" targetRef="RecordApplicationStarted" />
+      <bpmn:serviceTask id="RecordApplicationStarted" name="Record application started" camunda:type="external" camunda:topic="crm.person.update" />
+      <bpmn:sequenceFlow id="Flow_RecordToEnd" sourceRef="RecordApplicationStarted" targetRef="ApplicationStartedEnd" />
+      <bpmn:endEvent id="ApplicationStartedEnd" name="Application started" />
+    </bpmn:subProcess>
+  </bpmn:process>
+  <bpmn:message id="Message_AssessmentSubmitted" name="AssessmentSubmitted" />
+  <bpmn:message id="Message_AssessmentRetaken" name="AssessmentRetaken" />
+  <bpmn:message id="Message_ConsultationBooked" name="ConsultationBooked" />
+  <bpmn:message id="Message_AppointmentCompleted" name="AppointmentCompleted" />
+  <bpmn:message id="Message_AppointmentMissed" name="AppointmentMissed" />
+  <bpmn:message id="Message_AppointmentCancelled" name="AppointmentCancelled" />
+  <bpmn:message id="Message_AppointmentRescheduled" name="AppointmentRescheduled" />
+  <bpmn:message id="Message_Unsubscribed" name="Unsubscribed" />
+  <bpmn:message id="Message_MortgageApplicationStarted" name="MortgageApplicationStarted" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_lead-journey">
+    <bpmndi:BPMNPlane id="BPMNPlane_lead-journey" bpmnElement="lead-journey">
+      <bpmndi:BPMNShape id="BPMNShape_AssessmentSubmitted" bpmnElement="AssessmentSubmitted">
+        <dc:Bounds x="80" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="59" y="143" width="79" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_EvaluateAssessment" bpmnElement="EvaluateAssessment">
+        <dc:Bounds x="216" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_SaveActionPlan" bpmnElement="SaveActionPlan">
+        <dc:Bounds x="416" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_SendActionPlanEmail" bpmnElement="SendActionPlanEmail">
+        <dc:Bounds x="616" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_AfterActionPlan" bpmnElement="AfterActionPlan" isMarkerVisible="true">
+        <dc:Bounds x="816" y="95" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_CallTodayGateway" bpmnElement="CallTodayGateway" isMarkerVisible="true">
+        <dc:Bounds x="1316" y="95" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1301" y="76" width="80" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_NoCallNeeded" bpmnElement="NoCallNeeded">
+        <dc:Bounds x="1498" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1490" y="143" width="52" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_SetCallDue" bpmnElement="SetCallDue">
+        <dc:Bounds x="1466" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_CallToday" bpmnElement="CallToday">
+        <dc:Bounds x="1666" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_ReachedGateway" bpmnElement="ReachedGateway" isMarkerVisible="true">
+        <dc:Bounds x="1891" y="255" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1876" y="310" width="80" height="42" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_SendMissedCallSms" bpmnElement="SendMissedCallSms">
+        <dc:Bounds x="2066" y="400" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_CallHandled" bpmnElement="CallHandled">
+        <dc:Bounds x="2298" y="262" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2273" y="243" width="87" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_MarketingPhase" bpmnElement="MarketingPhase">
+        <dc:Bounds x="966" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_NoActionFor12Months" bpmnElement="NoActionFor12Months">
+        <dc:Bounds x="1173" y="262" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1214" y="259" width="81" height="42" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_WaitWithoutMarketing" bpmnElement="WaitWithoutMarketing" isMarkerVisible="true">
+        <dc:Bounds x="1166" y="575" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1156" y="528" width="70" height="42" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_ConsultationBookedWithoutMarketing" bpmnElement="ConsultationBookedWithoutMarketing">
+        <dc:Bounds x="1323" y="582" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1296" y="623" width="90" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_TwelveMonthsWithoutMarketing" bpmnElement="TwelveMonthsWithoutMarketing">
+        <dc:Bounds x="1323" y="902" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1308" y="943" width="67" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Unsubscribed" bpmnElement="Unsubscribed">
+        <dc:Bounds x="1498" y="902" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1471" y="943" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_RestartNurture" bpmnElement="RestartNurture">
+        <dc:Bounds x="1173" y="422" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1164" y="463" width="55" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Consultation" bpmnElement="Consultation">
+        <dc:Bounds x="1466" y="720" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_ConsultationExitGateway" bpmnElement="ConsultationExitGateway" isMarkerVisible="true">
+        <dc:Bounds x="1691" y="735" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1671" y="702" width="90" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_RecordConsultationOutcome" bpmnElement="RecordConsultationOutcome">
+        <dc:Bounds x="1866" y="720" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_OutcomeGateway" bpmnElement="OutcomeGateway" isMarkerVisible="true">
+        <dc:Bounds x="2091" y="735" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2011" y="790" width="90" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_MarkSalesQualifiedLead" bpmnElement="MarkSalesQualifiedLead">
+        <dc:Bounds x="2266" y="720" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_CreateOpportunity" bpmnElement="CreateOpportunity">
+        <dc:Bounds x="2466" y="720" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_WaitForApplication" bpmnElement="WaitForApplication">
+        <dc:Bounds x="2666" y="742" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2659" y="723" width="50" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_CheckApplicationStatus" bpmnElement="CheckApplicationStatus">
+        <dc:Bounds x="2802" y="720" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_ApplicationStatusGateway" bpmnElement="ApplicationStatusGateway" isMarkerVisible="true">
+        <dc:Bounds x="3002" y="735" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2986" y="830" width="83" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_ApplicationStarted" bpmnElement="ApplicationStarted">
+        <dc:Bounds x="3152" y="742" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3129" y="783" width="83" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_MarkPreparationNeeded" bpmnElement="MarkPreparationNeeded">
+        <dc:Bounds x="2266" y="880" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_PreparationSplit" bpmnElement="PreparationSplit" isMarkerVisible="true">
+        <dc:Bounds x="2491" y="895" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_WaitForFollowUpDate" bpmnElement="WaitForFollowUpDate">
+        <dc:Bounds x="2666" y="902" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2648" y="943" width="72" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_FollowUpCall" bpmnElement="FollowUpCall">
+        <dc:Bounds x="2802" y="880" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_FollowUpDone" bpmnElement="FollowUpDone">
+        <dc:Bounds x="3009" y="902" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2991" y="943" width="72" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_RecordNotMovingForward" bpmnElement="RecordNotMovingForward">
+        <dc:Bounds x="2266" y="560" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_StayInTouchOnly" bpmnElement="StayInTouchOnly">
+        <dc:Bounds x="3152" y="262" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3074" y="266" width="73" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_ConsultationBookedInMarketing" bpmnElement="ConsultationBookedInMarketing">
+        <dc:Bounds x="954" y="302" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="867" y="383" width="90" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_MarketingNotAllowed" bpmnElement="MarketingNotAllowed">
+        <dc:Bounds x="998" y="302" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="876" y="343" width="81" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_NewAssessmentInMarketing" bpmnElement="NewAssessmentInMarketing">
+        <dc:Bounds x="1042" y="302" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1083" y="306" width="79" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_AssessmentRetakenSubprocess" bpmnElement="AssessmentRetakenSubprocess">
+        <dc:Bounds x="80" y="1040" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_UnsubscribedSubprocess" bpmnElement="UnsubscribedSubprocess">
+        <dc:Bounds x="80" y="1200" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_ApplicationStartedSubprocess" bpmnElement="ApplicationStartedSubprocess">
+        <dc:Bounds x="80" y="1360" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_SubmittedToEvaluate" bpmnElement="Flow_SubmittedToEvaluate">
+        <di:waypoint x="116" y="120" />
+        <di:waypoint x="216" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_EvaluateToSave" bpmnElement="Flow_EvaluateToSave">
+        <di:waypoint x="316" y="120" />
+        <di:waypoint x="416" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_SaveToEmail" bpmnElement="Flow_SaveToEmail">
+        <di:waypoint x="516" y="120" />
+        <di:waypoint x="616" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_EmailToSplit" bpmnElement="Flow_EmailToSplit">
+        <di:waypoint x="716" y="120" />
+        <di:waypoint x="816" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_SplitToCallToday" bpmnElement="Flow_SplitToCallToday">
+        <di:waypoint x="866" y="120" />
+        <di:waypoint x="1316" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_NoCallToday" bpmnElement="Flow_NoCallToday">
+        <di:waypoint x="1366" y="120" />
+        <di:waypoint x="1498" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1423" y="98" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_CallDone" bpmnElement="Flow_CallDone">
+        <di:waypoint x="1941" y="280" />
+        <di:waypoint x="2298" y="280" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2198" y="258" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_MarketingToEnd" bpmnElement="Flow_MarketingToEnd">
+        <di:waypoint x="1066" y="280" />
+        <di:waypoint x="1173" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_WaitToBooked" bpmnElement="Flow_WaitToBooked">
+        <di:waypoint x="1216" y="600" />
+        <di:waypoint x="1323" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_BookedWithoutMarketingToConsultation" bpmnElement="Flow_BookedWithoutMarketingToConsultation">
+        <di:waypoint x="1359" y="600" />
+        <di:waypoint x="1516" y="600" />
+        <di:waypoint x="1516" y="720" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_ConsultationToExit" bpmnElement="Flow_ConsultationToExit">
+        <di:waypoint x="1566" y="760" />
+        <di:waypoint x="1691" y="760" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_ExitToMarketing" bpmnElement="Flow_ExitToMarketing">
+        <di:waypoint x="1716" y="785" />
+        <di:waypoint x="1716" y="980" />
+        <di:waypoint x="60" y="980" />
+        <di:waypoint x="60" y="280" />
+        <di:waypoint x="966" y="280" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1722" y="876" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_Opportunity" bpmnElement="Flow_Opportunity">
+        <di:waypoint x="2141" y="760" />
+        <di:waypoint x="2266" y="760" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2162" y="738" width="83" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_SqlToOpportunity" bpmnElement="Flow_SqlToOpportunity">
+        <di:waypoint x="2366" y="760" />
+        <di:waypoint x="2466" y="760" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_OpportunityToWait" bpmnElement="Flow_OpportunityToWait">
+        <di:waypoint x="2566" y="760" />
+        <di:waypoint x="2666" y="760" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_WaitToCheck" bpmnElement="Flow_WaitToCheck">
+        <di:waypoint x="2702" y="760" />
+        <di:waypoint x="2802" y="760" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_CheckToStatus" bpmnElement="Flow_CheckToStatus">
+        <di:waypoint x="2902" y="760" />
+        <di:waypoint x="3002" y="760" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_ApplicationStarted" bpmnElement="Flow_ApplicationStarted">
+        <di:waypoint x="3052" y="760" />
+        <di:waypoint x="3152" y="760" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3076" y="738" width="53" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_PreparationToMarketing" bpmnElement="Flow_PreparationToMarketing">
+        <di:waypoint x="2516" y="945" />
+        <di:waypoint x="2516" y="980" />
+        <di:waypoint x="60" y="980" />
+        <di:waypoint x="60" y="280" />
+        <di:waypoint x="966" y="280" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2079" y="947" width="74" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_SplitToMarketing" bpmnElement="Flow_SplitToMarketing">
+        <di:waypoint x="866" y="120" />
+        <di:waypoint x="1016" y="120" />
+        <di:waypoint x="1016" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_CallToday" bpmnElement="Flow_CallToday">
+        <di:waypoint x="1341" y="145" />
+        <di:waypoint x="1341" y="220" />
+        <di:waypoint x="1516" y="220" />
+        <di:waypoint x="1516" y="240" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1346" y="176" width="25" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_DueToCall" bpmnElement="Flow_DueToCall">
+        <di:waypoint x="1566" y="280" />
+        <di:waypoint x="1666" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_CallToReached" bpmnElement="Flow_CallToReached">
+        <di:waypoint x="1766" y="280" />
+        <di:waypoint x="1891" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_SendMissedCall" bpmnElement="Flow_SendMissedCall">
+        <di:waypoint x="1941" y="280" />
+        <di:waypoint x="2116" y="280" />
+        <di:waypoint x="2116" y="400" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2121" y="333" width="25" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_SmsToCallHandled" bpmnElement="Flow_SmsToCallHandled">
+        <di:waypoint x="2166" y="440" />
+        <di:waypoint x="2316" y="440" />
+        <di:waypoint x="2316" y="298" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_WaitToTwelveMonths" bpmnElement="Flow_WaitToTwelveMonths">
+        <di:waypoint x="1191" y="625" />
+        <di:waypoint x="1191" y="882" />
+        <di:waypoint x="1341" y="882" />
+        <di:waypoint x="1341" y="902" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_TwelveMonthsToUnsubscribed" bpmnElement="Flow_TwelveMonthsToUnsubscribed">
+        <di:waypoint x="1359" y="920" />
+        <di:waypoint x="1498" y="920" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_ExitCompleted" bpmnElement="Flow_ExitCompleted">
+        <di:waypoint x="1741" y="760" />
+        <di:waypoint x="1866" y="760" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1791" y="738" width="25" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_OutcomeToGateway" bpmnElement="Flow_OutcomeToGateway">
+        <di:waypoint x="1966" y="760" />
+        <di:waypoint x="2091" y="760" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_PreparationNeeded" bpmnElement="Flow_PreparationNeeded">
+        <di:waypoint x="2116" y="785" />
+        <di:waypoint x="2116" y="920" />
+        <di:waypoint x="2266" y="920" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2121" y="839" width="83" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_NotMovingForward" bpmnElement="Flow_NotMovingForward">
+        <di:waypoint x="2116" y="735" />
+        <di:waypoint x="2116" y="600" />
+        <di:waypoint x="2266" y="600" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2121" y="654" width="77" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_ApplicationDropped" bpmnElement="Flow_ApplicationDropped">
+        <di:waypoint x="3027" y="735" />
+        <di:waypoint x="3027" y="318" />
+        <di:waypoint x="3170" y="318" />
+        <di:waypoint x="3170" y="298" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3032" y="520" width="53" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_PreparationToSplit" bpmnElement="Flow_PreparationToSplit">
+        <di:waypoint x="2366" y="920" />
+        <di:waypoint x="2491" y="920" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_PreparationToFollowUp" bpmnElement="Flow_PreparationToFollowUp">
+        <di:waypoint x="2541" y="920" />
+        <di:waypoint x="2666" y="920" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_FollowUpDateToCall" bpmnElement="Flow_FollowUpDateToCall">
+        <di:waypoint x="2702" y="920" />
+        <di:waypoint x="2802" y="920" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_FollowUpToEnd" bpmnElement="Flow_FollowUpToEnd">
+        <di:waypoint x="2902" y="920" />
+        <di:waypoint x="3009" y="920" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_NotMovingForwardToStayInTouch" bpmnElement="Flow_NotMovingForwardToStayInTouch">
+        <di:waypoint x="2316" y="560" />
+        <di:waypoint x="2316" y="318" />
+        <di:waypoint x="3170" y="318" />
+        <di:waypoint x="3170" y="298" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_BookedToConsultation" bpmnElement="Flow_BookedToConsultation">
+        <di:waypoint x="972" y="338" />
+        <di:waypoint x="972" y="760" />
+        <di:waypoint x="1466" y="760" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_NotAllowedToWait" bpmnElement="Flow_NotAllowedToWait">
+        <di:waypoint x="1016" y="338" />
+        <di:waypoint x="1016" y="600" />
+        <di:waypoint x="1166" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_NewAssessmentToRestart" bpmnElement="Flow_NewAssessmentToRestart">
+        <di:waypoint x="1060" y="338" />
+        <di:waypoint x="1060" y="440" />
+        <di:waypoint x="1173" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_RestartToMarketing" bpmnElement="Flow_RestartToMarketing">
+        <di:waypoint x="1173" y="440" />
+        <di:waypoint x="60" y="440" />
+        <di:waypoint x="60" y="280" />
+        <di:waypoint x="966" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_ApplicationNotYet" bpmnElement="Flow_ApplicationNotYet">
+        <di:waypoint x="3027" y="785" />
+        <di:waypoint x="3027" y="820" />
+        <di:waypoint x="2684" y="820" />
+        <di:waypoint x="2684" y="778" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2831" y="828" width="50" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_StayInTouchOnlyToMarketing" bpmnElement="Flow_StayInTouchOnlyToMarketing">
+        <di:waypoint x="3170" y="262" />
+        <di:waypoint x="3170" y="220" />
+        <di:waypoint x="1016" y="220" />
+        <di:waypoint x="1016" y="240" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_MarketingPhase">
+    <bpmndi:BPMNPlane id="BPMNPlane_MarketingPhase" bpmnElement="MarketingPhase">
+      <bpmndi:BPMNShape id="BPMNShape_MarketingStarted" bpmnElement="MarketingStarted">
+        <dc:Bounds x="80" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="63" y="143" width="71" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_SkipNurtureGateway" bpmnElement="SkipNurtureGateway" isMarkerVisible="true">
+        <dc:Bounds x="216" y="95" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="201" y="62" width="80" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_NurtureSequence" bpmnElement="NurtureSequence">
+        <dc:Bounds x="366" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_StayInTouch" bpmnElement="StayInTouch">
+        <dc:Bounds x="566" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_MarketingFinished" bpmnElement="MarketingFinished">
+        <dc:Bounds x="766" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="749" y="143" width="71" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_MarketingToSkip" bpmnElement="Flow_MarketingToSkip">
+        <di:waypoint x="116" y="120" />
+        <di:waypoint x="216" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_ToNurture" bpmnElement="Flow_ToNurture">
+        <di:waypoint x="266" y="120" />
+        <di:waypoint x="366" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="307" y="98" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_NurtureToStayInTouch" bpmnElement="Flow_NurtureToStayInTouch">
+        <di:waypoint x="466" y="120" />
+        <di:waypoint x="566" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_StayInTouchToEnd" bpmnElement="Flow_StayInTouchToEnd">
+        <di:waypoint x="666" y="120" />
+        <di:waypoint x="766" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_SkipNurture" bpmnElement="Flow_SkipNurture">
+        <di:waypoint x="241" y="145" />
+        <di:waypoint x="241" y="180" />
+        <di:waypoint x="616" y="180" />
+        <di:waypoint x="616" y="160" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="416" y="188" width="25" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Consultation">
+    <bpmndi:BPMNPlane id="BPMNPlane_Consultation" bpmnElement="Consultation">
+      <bpmndi:BPMNShape id="BPMNShape_ConsultationStarted" bpmnElement="ConsultationStarted">
+        <dc:Bounds x="80" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="53" y="143" width="90" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_MarkMarketingQualifiedLead" bpmnElement="MarkMarketingQualifiedLead">
+        <dc:Bounds x="216" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_WaitForAppointment" bpmnElement="WaitForAppointment">
+        <dc:Bounds x="416" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_SendReminder24h" bpmnElement="SendReminder24h">
+        <dc:Bounds x="616" y="720" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Reminder24hSent" bpmnElement="Reminder24hSent">
+        <dc:Bounds x="823" y="742" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="809" y="783" width="65" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_SendReminder1h" bpmnElement="SendReminder1h">
+        <dc:Bounds x="616" y="560" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Reminder1hSent" bpmnElement="Reminder1hSent">
+        <dc:Bounds x="823" y="582" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="809" y="623" width="65" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_DidConsultationHappen" bpmnElement="DidConsultationHappen">
+        <dc:Bounds x="616" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_HappenedGateway" bpmnElement="HappenedGateway" isMarkerVisible="true">
+        <dc:Bounds x="816" y="255" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="807" y="310" width="69" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_ConsultationHappened" bpmnElement="ConsultationHappened">
+        <dc:Bounds x="998" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="971" y="69" width="90" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_ConsultationCompleted" bpmnElement="ConsultationCompleted">
+        <dc:Bounds x="1173" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1146" y="143" width="90" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_AskToReschedule" bpmnElement="AskToReschedule">
+        <dc:Bounds x="966" y="400" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_RescheduleResultGateway" bpmnElement="RescheduleResultGateway" isMarkerVisible="true">
+        <dc:Bounds x="1166" y="415" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1157" y="470" width="69" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_WaitForNewBooking" bpmnElement="WaitForNewBooking" isMarkerVisible="true">
+        <dc:Bounds x="1316" y="255" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1298" y="222" width="86" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_NewBooking" bpmnElement="NewBooking">
+        <dc:Bounds x="1466" y="262" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1439" y="229" width="90" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_NoNewBooking" bpmnElement="NoNewBooking">
+        <dc:Bounds x="1466" y="582" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1459" y="623" width="50" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_BackToMarketing" bpmnElement="BackToMarketing">
+        <dc:Bounds x="1602" y="422" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1577" y="389" width="86" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_ConsultationLeft" bpmnElement="ConsultationLeft">
+        <dc:Bounds x="1738" y="422" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1691" y="463" width="90" height="42" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Reminder24h" bpmnElement="Reminder24h">
+        <dc:Bounds x="338" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="259" y="183" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Reminder1h" bpmnElement="Reminder1h">
+        <dc:Bounds x="382" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="266" y="223" width="68" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_AppointmentMissed" bpmnElement="AppointmentMissed">
+        <dc:Bounds x="426" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="499" y="263" width="50" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_AppointmentCancelled" bpmnElement="AppointmentCancelled">
+        <dc:Bounds x="470" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="494" y="223" width="69" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_AppointmentRescheduled" bpmnElement="AppointmentRescheduled">
+        <dc:Bounds x="514" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="591" y="183" width="83" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_NoAppointmentResult" bpmnElement="NoAppointmentResult">
+        <dc:Bounds x="558" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="533" y="83" width="86" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_ConsultationToMql" bpmnElement="Flow_ConsultationToMql">
+        <di:waypoint x="116" y="120" />
+        <di:waypoint x="216" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_MqlToWait" bpmnElement="Flow_MqlToWait">
+        <di:waypoint x="316" y="120" />
+        <di:waypoint x="416" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_CompletedToHappened" bpmnElement="Flow_CompletedToHappened">
+        <di:waypoint x="516" y="120" />
+        <di:waypoint x="998" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="722" y="98" width="70" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_HappenedToEnd" bpmnElement="Flow_HappenedToEnd">
+        <di:waypoint x="1034" y="120" />
+        <di:waypoint x="1173" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_NotHappened" bpmnElement="Flow_NotHappened">
+        <di:waypoint x="866" y="280" />
+        <di:waypoint x="1016" y="280" />
+        <di:waypoint x="1016" y="400" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1022" y="353" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_RescheduleToResult" bpmnElement="Flow_RescheduleToResult">
+        <di:waypoint x="1066" y="440" />
+        <di:waypoint x="1166" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_NotReached" bpmnElement="Flow_NotReached">
+        <di:waypoint x="1216" y="440" />
+        <di:waypoint x="1602" y="440" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1370" y="418" width="78" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_WaitToNewBooking" bpmnElement="Flow_WaitToNewBooking">
+        <di:waypoint x="1366" y="280" />
+        <di:waypoint x="1466" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_NewBookingToWait" bpmnElement="Flow_NewBookingToWait">
+        <di:waypoint x="1484" y="298" />
+        <di:waypoint x="1484" y="340" />
+        <di:waypoint x="466" y="340" />
+        <di:waypoint x="466" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_BackToEnd" bpmnElement="Flow_BackToEnd">
+        <di:waypoint x="1638" y="440" />
+        <di:waypoint x="1738" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_Reminder24hToEnd" bpmnElement="Flow_Reminder24hToEnd">
+        <di:waypoint x="716" y="760" />
+        <di:waypoint x="823" y="760" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_Reminder1hToEnd" bpmnElement="Flow_Reminder1hToEnd">
+        <di:waypoint x="716" y="600" />
+        <di:waypoint x="823" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_AskToHappenedGateway" bpmnElement="Flow_AskToHappenedGateway">
+        <di:waypoint x="716" y="280" />
+        <di:waypoint x="816" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_Happened" bpmnElement="Flow_Happened">
+        <di:waypoint x="866" y="280" />
+        <di:waypoint x="1016" y="280" />
+        <di:waypoint x="1016" y="138" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1021" y="202" width="25" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_Rebooked" bpmnElement="Flow_Rebooked">
+        <di:waypoint x="1191" y="415" />
+        <di:waypoint x="1191" y="280" />
+        <di:waypoint x="1316" y="280" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1196" y="361" width="60" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_WaitToNoBooking" bpmnElement="Flow_WaitToNoBooking">
+        <di:waypoint x="1366" y="305" />
+        <di:waypoint x="1366" y="318" />
+        <di:waypoint x="1794" y="318" />
+        <di:waypoint x="1794" y="582" />
+        <di:waypoint x="1502" y="582" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_NoBookingToBack" bpmnElement="Flow_NoBookingToBack">
+        <di:waypoint x="1484" y="582" />
+        <di:waypoint x="1484" y="478" />
+        <di:waypoint x="1620" y="478" />
+        <di:waypoint x="1620" y="458" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_Reminder24hToSms" bpmnElement="Flow_Reminder24hToSms">
+        <di:waypoint x="356" y="178" />
+        <di:waypoint x="356" y="760" />
+        <di:waypoint x="616" y="760" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_Reminder1hToSms" bpmnElement="Flow_Reminder1hToSms">
+        <di:waypoint x="400" y="178" />
+        <di:waypoint x="400" y="600" />
+        <di:waypoint x="616" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_MissedToReschedule" bpmnElement="Flow_MissedToReschedule">
+        <di:waypoint x="444" y="178" />
+        <di:waypoint x="444" y="440" />
+        <di:waypoint x="966" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_CancelledToReschedule" bpmnElement="Flow_CancelledToReschedule">
+        <di:waypoint x="488" y="178" />
+        <di:waypoint x="488" y="440" />
+        <di:waypoint x="966" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_NoResultToAsk" bpmnElement="Flow_NoResultToAsk">
+        <di:waypoint x="576" y="178" />
+        <di:waypoint x="576" y="280" />
+        <di:waypoint x="616" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_RescheduledToWait" bpmnElement="Flow_RescheduledToWait">
+        <di:waypoint x="532" y="178" />
+        <di:waypoint x="532" y="218" />
+        <di:waypoint x="376" y="218" />
+        <di:waypoint x="376" y="120" />
+        <di:waypoint x="416" y="120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_AssessmentRetakenSubprocess">
+    <bpmndi:BPMNPlane id="BPMNPlane_AssessmentRetakenSubprocess" bpmnElement="AssessmentRetakenSubprocess">
+      <bpmndi:BPMNShape id="BPMNShape_AssessmentRetaken" bpmnElement="AssessmentRetaken">
+        <dc:Bounds x="80" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="59" y="143" width="79" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_EvaluateRetakenAssessment" bpmnElement="EvaluateRetakenAssessment">
+        <dc:Bounds x="216" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_SaveRetakenActionPlan" bpmnElement="SaveRetakenActionPlan">
+        <dc:Bounds x="416" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_SendRetakenActionPlanEmail" bpmnElement="SendRetakenActionPlanEmail">
+        <dc:Bounds x="616" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_RequestNurtureRestart" bpmnElement="RequestNurtureRestart">
+        <dc:Bounds x="816" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="789" y="143" width="90" height="42" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_NewActionPlanSent" bpmnElement="NewActionPlanSent">
+        <dc:Bounds x="952" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="931" y="143" width="78" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_RetakenToEvaluate" bpmnElement="Flow_RetakenToEvaluate">
+        <di:waypoint x="116" y="120" />
+        <di:waypoint x="216" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_RetakenEvaluateToSave" bpmnElement="Flow_RetakenEvaluateToSave">
+        <di:waypoint x="316" y="120" />
+        <di:waypoint x="416" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_RetakenSaveToEmail" bpmnElement="Flow_RetakenSaveToEmail">
+        <di:waypoint x="516" y="120" />
+        <di:waypoint x="616" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_RetakenEmailToRestart" bpmnElement="Flow_RetakenEmailToRestart">
+        <di:waypoint x="716" y="120" />
+        <di:waypoint x="816" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_RestartToEnd" bpmnElement="Flow_RestartToEnd">
+        <di:waypoint x="852" y="120" />
+        <di:waypoint x="952" y="120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_UnsubscribedSubprocess">
+    <bpmndi:BPMNPlane id="BPMNPlane_UnsubscribedSubprocess" bpmnElement="UnsubscribedSubprocess">
+      <bpmndi:BPMNShape id="BPMNShape_UnsubscribeReceived" bpmnElement="UnsubscribeReceived">
+        <dc:Bounds x="80" y="80" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="53" y="121" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_MarketingStopped" bpmnElement="MarketingStopped">
+        <dc:Bounds x="216" y="80" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="199" y="121" width="71" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_UnsubscribeToEnd" bpmnElement="Flow_UnsubscribeToEnd">
+        <di:waypoint x="116" y="98" />
+        <di:waypoint x="216" y="98" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_ApplicationStartedSubprocess">
+    <bpmndi:BPMNPlane id="BPMNPlane_ApplicationStartedSubprocess" bpmnElement="ApplicationStartedSubprocess">
+      <bpmndi:BPMNShape id="BPMNShape_MortgageApplicationStarted" bpmnElement="MortgageApplicationStarted">
+        <dc:Bounds x="80" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="57" y="143" width="83" height="42" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_RecordApplicationStarted" bpmnElement="RecordApplicationStarted">
+        <dc:Bounds x="216" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_ApplicationStartedEnd" bpmnElement="ApplicationStartedEnd">
+        <dc:Bounds x="416" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="393" y="143" width="83" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_ApplicationToRecord" bpmnElement="Flow_ApplicationToRecord">
+        <di:waypoint x="116" y="120" />
+        <di:waypoint x="216" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_RecordToEnd" bpmnElement="Flow_RecordToEnd">
+        <di:waypoint x="316" y="120" />
+        <di:waypoint x="416" y="120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:camunda="http://camunda.org/schema/1.0/dmn" id="task-due" name="Task Due" namespace="https://phxhomeloan.com/automation/tasks">
+  <decision id="taskDue" name="Task Due" camunda:historyTimeToLive="760">
+    <description>STUB (spec #164, build order step 1). Every task is due 4 hours from now. Step 3 replaces this with the working-hours rule.</description>
+    <decisionTable id="taskDueTable" hitPolicy="UNIQUE">
+      <input id="timeZoneInput" label="Time zone">
+        <inputExpression id="timeZoneExpression" typeRef="string">
+          <text>timeZone</text>
+        </inputExpression>
+      </input>
+      <output id="dueOutput" label="Due" name="due" typeRef="date" />
+      <rule id="fourHours">
+        <inputEntry id="fourHoursTimeZone">
+          <text></text>
+        </inputEntry>
+        <outputEntry id="fourHoursDue">
+          <text>now() + duration("PT4H")</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="task-due-diagram">
+      <dmndi:DMNShape id="taskDue_di" dmnElementRef="taskDue">
+        <dc:Bounds height="80" width="180" x="160" y="100" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>

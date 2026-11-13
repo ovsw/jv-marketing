@@ -11,10 +11,14 @@
     "bootstrap": "node --env-file=.env.development.local scripts/bootstrap-machine-users.ts",
     "park": "node --env-file=.env.development.local scripts/dev-stack.ts park",
     "unpark": "node --env-file=.env.development.local scripts/dev-stack.ts unpark",
+    "modeler:push": "node --env-file=.env.development.local scripts/modeler.ts push",
+    "modeler:pull": "node --env-file=.env.development.local scripts/modeler.ts pull",
+    "drive": "node --env-file=.env.development.local scripts/drive-lead-journey.ts",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/node": "^26.1.0",
+    "bpmn-auto-layout": "2.0.0-alpha.2",
     "railway": "3.11.0",
     "typescript": "^6.0.3"
   }
